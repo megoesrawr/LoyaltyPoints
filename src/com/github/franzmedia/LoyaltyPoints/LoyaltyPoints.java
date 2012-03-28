@@ -19,27 +19,27 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class LoyaltyPoints extends JavaPlugin {
 	public final Logger logger = Logger.getLogger("Minecraft");
 
-	public int increment = 1;
-	public int cycleNumber = 600; // 10 minutes
-	public int updateTimer = cycleNumber / 3;
-	public int startingPoints = 0;
-	public String pluginTag = "&6[LoyaltyPoints]";
-	public int TimeLeft = cycleNumber;
-	public String selfcheckMessage = "%TAG% &3You have &b%POINTS% &3Loyalty Points.";
-	public String checkotherMessage = "%TAG% &3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.";
-
+	public int increment = 1, cycleNumber = 600, updateTimer = cycleNumber / 3,  startingPoints = 0;;
+	
 	public Map<String, Integer> loyaltyMap = new HashMap<String, Integer>();
 	public Map<String, Integer> LoyaltTime = new HashMap<String, Integer>();
 	public Map<String, Long> LoyaltStart = new HashMap<String, Long>();
-	// public List<String> milestones = new ArrayList<String>();
-	// public Map<String, List<Integer>> rewardsTracker = new HashMap<String,
-	// List<Integer>>(); // For tracking rewards, etc.
 	public Map<String, Long> timeComparison = new HashMap<String, Long>();
-	
 	public FileConfiguration config;
 	public File mapFile;
 	public FileConfiguration mapFileConfig;
 	public LPFileManager lcFM = new LPFileManager(this);
+	
+	/* Messages  EDITABLE					 */ 
+	public String pluginTag = "&6[LoyaltyPoints]";
+	public String consoleCheck = pluginTag+ " Sorry, I don't track consoles.";
+	public String selfcheckMessage = "%TAG% &3You have &b%POINTS% &3Loyalty Points.";
+	public String checkotherMessage = "%TAG% &3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.";
+	
+	// public List<String> milestones = new ArrayList<String>();
+	// public Map<String, List<Integer>> rewardsTracker = new HashMap<String,
+	// List<Integer>>(); // For tracking rewards, etc.
+	
 
 	// public static Economy economy = null;
 	// public boolean economyPresent = true;

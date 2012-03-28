@@ -19,160 +19,142 @@ public class LPCommand implements CommandExecutor {
 
 	public LPCommand(LoyaltyPoints isCool) {
 		plugin = isCool;
-		
+
 	}
 
-	public boolean onCommand(CommandSender sender, Command cmd, String zhf,
-			String[] args) {
-		String leo = sender.getName();
+	public boolean onCommand(CommandSender sender, Command cmd, String zhf, String[] args) {
+		String playerName = sender.getName();
+		boolean returnstr = false;
 		if (args.length == 0) {
-			if (sender instanceof Player
-					& sender.hasPermission("loyaltypoints.check")) {
-				sender.sendMessage(plugin.selfcheckMessage.replaceAll(
-						"%PLAYERNAME%", leo).replaceAll("%POINTS%",
-						String.valueOf(plugin.loyaltyMap.get(leo))));
-				return true;
+			if (sender instanceof Player && sender.hasPermission("loyaltypoints.check")) {
+				sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.loyaltyMap.get(playerName))));
+				returnstr = true;
 			} else {
-				sender.sendMessage("[LoyaltyPoints] Sorry, I don't track consoles.");
-				return true;
+				sender.sendMessage(plugin.consoleCheck);
+				returnstr = false;
 			}
-		}
-
-		if (args.length >= 1) {
-			if (args[0].equalsIgnoreCase("help")) {
-				sender.sendMessage(ChatColor.DARK_AQUA + "---------"
-						+ ChatColor.AQUA + " LoyaltyPoints Help "
-						+ ChatColor.DARK_AQUA + "---------");
-				sender.sendMessage(ChatColor.AQUA + "/loyaltypoints [/lp] "
-						+ ChatColor.GREEN + " - Ser dine Loyaltychecks your Loyalty Points");
-				sender.sendMessage(ChatColor.AQUA + "/lp [username]"
-						+ ChatColor.GREEN
-						+ "- checks the specified player's Loyalty Points");
-				sender.sendMessage(ChatColor.AQUA + "/lp top (amount)"
-						+ ChatColor.GREEN + " - shows the top 10 players");
-				return true;
-			}
-
-			if (args[0].equalsIgnoreCase("top")	&& sender.hasPermission("loyaltypoints.top")) {
-
-				int b = 10;
-				if (args.length == 2) {
-					try {
-						b = Integer.parseInt(args[1]);
-					} catch (NumberFormatException nfe) {
-						sender.sendMessage(ChatColor.RED
-								+ "Number expected after /lp top");
-						return true;
-					}
-				}
-
-				List<User> users = new ArrayList<User>();
-				for (Iterator<String> it = plugin.loyaltyMap.keySet()
-						.iterator(); it.hasNext();) {
-					String player = it.next();
-					users.add(new User(player, plugin.loyaltyMap.get(player)));
-				}
-
-				if (users.isEmpty()) {
-					sender.sendMessage(plugin.pluginTag + ChatColor.RED
-							+ " No players in record.");
-					return true;
-				}
-
-				Collections.sort(users, new PointsComparator());
-
-				if (b > users.size()) {
-					b = users.size();
-				}
-				sender.sendMessage(ChatColor.DARK_AQUA + "---------"
-						+ ChatColor.AQUA + " LoyaltyPoints Top Players "
-						+ ChatColor.DARK_AQUA + "---------");
-				for (int a = 0; a < b; a++) {
-					String c = String.valueOf(a + 1);
-					sender.sendMessage(ChatColor.GREEN + c + ". "
-							+ ChatColor.DARK_AQUA + users.get(a).name + " - "
-							+ ChatColor.BLUE + users.get(a).points + " points");
-				}
-				return true;
-			} // end of command argument
-
-			if (args[0].equalsIgnoreCase("set")) {
-				if (sender.hasPermission("loyaltypoints.set")) {
-					if (!(args.length == 3)) {
-						sender.sendMessage(ChatColor.RED
-								+ "/lp set [username] [amount]");
-						return true;
-					}
-					try {
-						int amount = Integer.parseInt(args[2]);
-						if (!plugin.loyaltyMap.containsKey(args[1])) {
-							sender.sendMessage(ChatColor.RED
-									+ "Player not found.");
-							return true;
-						}
-						plugin.loyaltyMap.put(args[1], amount);
-						return true;
-					} catch (NumberFormatException e) {
-						sender.sendMessage(ChatColor.RED
-								+ "Number expected after /lp delete [username]");
-					}
-				}
-			}
-
-			if (args[0].equalsIgnoreCase("version")) {
-				if (sender.hasPermission("loyaltypoints.version")) {
-					sender.sendMessage(plugin.pluginTag + ChatColor.WHITE
-							+ " version "
-							+ plugin.getDescription().getVersion());
-					return true;
-				}
-			}
-
-			if (args[0].equalsIgnoreCase("reload")) {
-				if (sender.hasPermission("loyaltypoints.reload")) {
-					LPFileManager.save();
-					plugin.onDisable();
-					plugin.onEnable();
-					sender.sendMessage(plugin.pluginTag + ChatColor.WHITE
-							+ " reloaded points data & configuration.");
-					return true;
-				}
-			}
-			
-			if(args[0].equalsIgnoreCase("next")){
-				if(sender.hasPermission("loyaltypoints.next")){
-				String daten = plugin.getNiceNumber((int) (plugin.cycleNumber*1000-(new Date().getTime() - plugin.timeComparison.get(leo))));
-					sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + daten );
-				return true;
+		}else{
+			if(args[0].equalsIgnoreCase("help")) {
+				/* HELP COMMAND */ 
+				returnstr = help(sender);
+				
+			}else if(args[0].equalsIgnoreCase("top") && sender.hasPermission("loyaltypoints.top")) {
+				/* TOP COMMAND */ 
+				returnstr = top(sender,args);
+				
+			}else if (args[0].equalsIgnoreCase("set") && sender.hasPermission("loyaltypoints.set")) {
+				/* SET COMMAND */ 
+			returnstr = set(sender, args[1], args);
+				
+			}else if (args[0].equalsIgnoreCase("version") && sender.hasPermission("loyaltypoints.version")) {
+				/* VERSION COMMAND */ 
+				returnstr = version(sender);
+				
+			}else if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("loyaltypoints.reload")) {
+				/* RELOAD COMMAND */ 
+				returnstr = reload(sender);
+			}else if(args[0].equalsIgnoreCase("next") && sender.hasPermission("loyaltypoints.next")){
+				/* NEXT COMMAND */ 
+			returnstr = next(sender);
 				}
 						
 			}
+		return returnstr;
 
-			if (sender.hasPermission("loyaltypoints.check.other")) {
-				Player trick = Bukkit.getPlayer(args[0]);
-				if (trick != null) {
-					String other1 = trick.getName();
-					sender.sendMessage(plugin.checkotherMessage.replaceAll(
-							"%PLAYERNAME%", other1).replaceAll("%POINTS%",
-							String.valueOf(plugin.loyaltyMap.get(other1))));
-					return true;
-				} else if (trick == null) {
-					if (plugin.loyaltyMap.containsKey(args[0])) {
-						sender.sendMessage(plugin.checkotherMessage.replaceAll(
-								"%PLAYERNAME%", args[0]).replaceAll("%POINTS%",
-								String.valueOf(plugin.loyaltyMap.get(args[0]))));
-					} else {
-						sender.sendMessage(plugin.pluginTag + ChatColor.WHITE
-								+ " Player not found.");
-					}
-					return true;
 				}
-			}
-		}
+			
+		
 
-		return false;
+		
+	private boolean next(CommandSender sender) {
+		String daten = plugin.getNiceNumber((int) (plugin.cycleNumber*1000-(new Date().getTime() - plugin.timeComparison.get(sender.getName()))));
+		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + daten );
+	return true;
+		
 	}
 
+	
+
+
+private boolean reload(CommandSender sender) {
+	plugin.onDisable();
+	plugin.onEnable();
+	sender.sendMessage(plugin.pluginTag + ChatColor.WHITE
+			+ " reloaded points data & configuration.");
+	return true;
+	}
+
+private boolean version(CommandSender sender) {
+	
+
+		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + " version " + plugin.getDescription().getVersion());
+return true;
+}
+
+private boolean set(CommandSender sender, String setPlayer, String[] args) {
+	boolean returnstr = true;
+	
+	if (!(args.length == 3)) {
+		sender.sendMessage(ChatColor.RED  + "/lp set [username] [amount]");
+	}else 	if(!plugin.loyaltyMap.containsKey(setPlayer)) {
+		sender.sendMessage(ChatColor.RED  + "Player not found.");
+		return true;
+	}else{	
+		try {
+			int amount = Integer.parseInt(args[2]);
+			plugin.loyaltyMap.put(setPlayer, amount);
+		} catch (NumberFormatException e) {
+			sender.sendMessage(ChatColor.RED + "Number expected after /lp delete [username]");
+		}
+	}
+	return returnstr;
+}
+
+private boolean top(CommandSender sender,String[] args) {
+boolean returnstr = true;
+	int maxTop = 10;
+	if (args.length == 2) {
+		try {
+			maxTop = Integer.parseInt(args[1]);
+		} catch (NumberFormatException nfe) { // if args contains other that integers.
+			sender.sendMessage(plugin.pluginTag + ChatColor.RED	+ "Number expected after /lp top");
+		}
+	}
+
+	List<User> users = new ArrayList<User>();
+	Iterator<String> it = plugin.loyaltyMap.keySet().iterator();
+	while(it.hasNext()) {
+		String player = it.next();
+		users.add(new User(player, plugin.loyaltyMap.get(player)));
+	 }
+
+	if (users.isEmpty()) {
+		sender.sendMessage(plugin.pluginTag + ChatColor.RED + " No players in record.");
+	}
+
+	Collections.sort(users, new PointsComparator());
+
+	if (maxTop > users.size()) { maxTop = users.size(); 	}
+	sender.sendMessage(ChatColor.DARK_AQUA + "---------" 	+ ChatColor.AQUA + " LoyaltyPoints Top Players " + ChatColor.DARK_AQUA + "---------");
+	for (int a = 0; a < maxTop; a++) {
+				sender.sendMessage(ChatColor.GREEN + String.valueOf(a+1) + ". "
+				+ ChatColor.DARK_AQUA + users.get(a).name + " - "
+				+ ChatColor.BLUE + users.get(a).points + " points");
+	}
+	
+		return returnstr;
+	}
+
+private boolean help(CommandSender sender){
+	sender.sendMessage(ChatColor.DARK_AQUA + "---------" + ChatColor.AQUA + " LoyaltyPoints Help " + ChatColor.DARK_AQUA + "---------");
+	sender.sendMessage(ChatColor.AQUA + "/loyaltypoints [/lp] "	+ ChatColor.GREEN + " - Checks your Loyalty Points");
+	sender.sendMessage(ChatColor.AQUA + "/lp [username]" + ChatColor.GREEN	+ "- checks the specified player's Loyalty Points");
+	sender.sendMessage(ChatColor.AQUA + "/lp top (amount)" + ChatColor.GREEN + " - shows the top 10 players");
+	
+	sender.sendMessage(ChatColor.DARK_AQUA + "---------"
+			+ ChatColor.AQUA + " LoyaltyPoints Help "
+			+ ChatColor.DARK_AQUA + "---------");
+	return true;
 }
 
 class PointsComparator implements Comparator<User> {
@@ -182,12 +164,14 @@ class PointsComparator implements Comparator<User> {
 }
 
 class User {
-	public String name;
-	public int points;
+	private String name;
+	private int points;
 
 	public User(String name, int points) {
 		this.name = name;
 		this.points = points;
 	}
-
 }
+}
+
+
