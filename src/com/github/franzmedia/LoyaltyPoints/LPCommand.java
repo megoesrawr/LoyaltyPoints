@@ -17,9 +17,8 @@ import org.bukkit.entity.Player;
 public class LPCommand implements CommandExecutor {
 	private final LoyaltyPoints plugin;
 
-	public LPCommand(LoyaltyPoints isCool) {
-		plugin = isCool;
-
+	public LPCommand(LoyaltyPoints LP) {
+		plugin = LP;
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String zhf, String[] args) {
@@ -44,7 +43,7 @@ public class LPCommand implements CommandExecutor {
 				
 			}else if (args[0].equalsIgnoreCase("set") && sender.hasPermission("loyaltypoints.set")) {
 				/* SET COMMAND */ 
-			returnstr = set(sender, args[1], args);
+				returnstr = set(sender, args[1], args);
 				
 			}else if (args[0].equalsIgnoreCase("version") && sender.hasPermission("loyaltypoints.version")) {
 				/* VERSION COMMAND */ 
@@ -53,19 +52,49 @@ public class LPCommand implements CommandExecutor {
 			}else if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("loyaltypoints.reload")) {
 				/* RELOAD COMMAND */ 
 				returnstr = reload(sender);
+				
 			}else if(args[0].equalsIgnoreCase("next") && sender.hasPermission("loyaltypoints.next")){
 				/* NEXT COMMAND */ 
-			returnstr = next(sender);
+				returnstr = next(sender);
+	/*		}else if(args[0].equalsIgnoreCase("playtime") && sender.hasPermission("loyaltypoints.playtime")){
+			//	 PlayTime 
+				returnstr = playtime(sender,args); 
+				
+	*/			
+			}else{	
+				// compare other ppl
+			
+				if (sender.hasPermission("loyaltypoints.check.other")) {
+					Player trick = Bukkit.getPlayer(args[0]);
+					if (trick != null) {
+						String other1 = trick.getName();
+						sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", other1).replaceAll("%POINTS%",String.valueOf(plugin.loyaltyMap.get(other1))));
+						returnstr = true;
+					} else{
+						if (plugin.loyaltyMap.containsKey(args[0])) {
+							sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", args[0]).replaceAll("%POINTS%",String.valueOf(plugin.loyaltyMap.get(args[0]))));
+						} else {
+							sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + " Player not found.");
+						}
+					}
 				}
-						
 			}
-		return returnstr;
-
-				}
+		}
+	return returnstr;
+	}
 			
 		
 
 		
+	/*
+	private boolean playtime(CommandSender sender, String[] args) {
+		
+		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + "Currently: " + plugin.getNiceNumber(plugin.getPlayTime(sender.getName())));
+				
+		
+		return true;
+	} */
+
 	private boolean next(CommandSender sender) {
 		String daten = plugin.getNiceNumber((int) (plugin.cycleNumber*1000-(new Date().getTime() - plugin.timeComparison.get(sender.getName()))));
 		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + daten );
@@ -98,11 +127,12 @@ private boolean set(CommandSender sender, String setPlayer, String[] args) {
 		sender.sendMessage(ChatColor.RED  + "/lp set [username] [amount]");
 	}else 	if(!plugin.loyaltyMap.containsKey(setPlayer)) {
 		sender.sendMessage(ChatColor.RED  + "Player not found.");
-		return true;
+		
 	}else{	
 		try {
 			int amount = Integer.parseInt(args[2]);
 			plugin.loyaltyMap.put(setPlayer, amount);
+			sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + setPlayer+"s Loyalty Points was changed to "+ amount);
 		} catch (NumberFormatException e) {
 			sender.sendMessage(ChatColor.RED + "Number expected after /lp delete [username]");
 		}

@@ -262,4 +262,9 @@ public class LoyaltyPoints extends JavaPlugin {
 		}
 	}
 
+	public int getPlayTime(String name) {
+		return LoyaltTime.get(name);
+		
+	}
+
 }
