@@ -35,6 +35,9 @@ public class CountScheduler implements Runnable {
 				_p.timeComparison.put(m, now);
 			
 			}
+			System.out.println("opdatering igang med points"+_p.LoyaltTime.get(m));
+			_p.LoyaltTime.put(m, (_p.LoyaltTime.get(m)+ (int) ((now - _p.LoyaltStart.get(m))/1000) ));
+			_p.LoyaltStart.put(m, now);
 		}
 		Bukkit.getServer()
 				.getScheduler()

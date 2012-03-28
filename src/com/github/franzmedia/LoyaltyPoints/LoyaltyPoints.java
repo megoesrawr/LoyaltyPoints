@@ -29,10 +29,13 @@ public class LoyaltyPoints extends JavaPlugin {
 	public String checkotherMessage = "%TAG% &3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.";
 
 	public Map<String, Integer> loyaltyMap = new HashMap<String, Integer>();
+	public Map<String, Integer> LoyaltTime = new HashMap<String, Integer>();
+	public Map<String, Long> LoyaltStart = new HashMap<String, Long>();
 	// public List<String> milestones = new ArrayList<String>();
 	// public Map<String, List<Integer>> rewardsTracker = new HashMap<String,
 	// List<Integer>>(); // For tracking rewards, etc.
 	public Map<String, Long> timeComparison = new HashMap<String, Long>();
+	
 	public FileConfiguration config;
 	public File mapFile;
 	public FileConfiguration mapFileConfig;
@@ -51,7 +54,9 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	public void onDisable() {
 		LPFileManager.save();
+		
 		loyaltyMap.clear();
+		LoyaltTime.clear();
 		// milestones.clear();
 		info(this.getDescription(), "disabled");
 	}
@@ -74,10 +79,7 @@ public class LoyaltyPoints extends JavaPlugin {
 		 * ); economyPresent = false; }
 		 */
 
-		this.getServer()
-				.getScheduler()
-				.scheduleSyncDelayedTask(this, new CountScheduler(this),
-						(long) this.updateTimer);
+		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new CountScheduler(this),(long) this.updateTimer);
 		info(this.getDescription(), "enabled");
 	}
 
@@ -110,8 +112,14 @@ public class LoyaltyPoints extends JavaPlugin {
 		if (!this.loyaltyMap.containsKey(player)) {
 			if (!LPFileManager.load(player)) {
 				this.loyaltyMap.put(player, this.startingPoints);
+				this.LoyaltTime.put(player, 0);
 			}
 		}
+
+		if(!this.LoyaltStart.containsKey(player)){
+			this.LoyaltStart.put(player, new Date().getTime());
+		}
+		
 		if (!this.timeComparison.containsKey(player)) {
 			this.timeComparison.put(player, new Date().getTime());
 		}
@@ -135,9 +143,9 @@ public class LoyaltyPoints extends JavaPlugin {
 		}
 
 		if (millsec >= 2629744) { // month
-			if( g == 1){
+			if (g == 1) {
 				str = str + ", ";
-				 g = 0;
+				g = 0;
 			}
 			str = str + (millsec / 2629744) + "m";
 			millsec = millsec - ((millsec / 2629744) * 2629744);
@@ -145,27 +153,27 @@ public class LoyaltyPoints extends JavaPlugin {
 		}
 
 		if (millsec >= 86400) { // day
-			if( g == 1){
+			if (g == 1) {
 				str = str + ", ";
-				 g = 0;
+				g = 0;
 			}
 			str = str + (millsec / 86400) + "d";
 			millsec = millsec - ((millsec / 86400) * 86400);
 			g = 1;
 		}
 		if (millsec >= 3600) { // time
-			if( g == 1){
+			if (g == 1) {
 				str = str + ", ";
-				 g = 0;
+				g = 0;
 			}
 			str = str + (millsec / 3600) + "h";
 			millsec = millsec - ((millsec / 3600) * 3600);
 			g = 1;
 		}
 		if (millsec >= 60) { // min
-			if( g == 1){
+			if (g == 1) {
 				str = str + ", ";
-				 g = 0;
+				g = 0;
 			}
 			str = str + (millsec / 60) + "m";
 			millsec = millsec - ((millsec / 60) * 60);
@@ -173,13 +181,13 @@ public class LoyaltyPoints extends JavaPlugin {
 		}
 
 		if (millsec >= 1) {
-			if( g == 1){
+			if (g == 1) {
 				str = str + ", ";
-				 
+
 			}
 			str = str + millsec + "s";
 			millsec = millsec - millsec;
-			
+
 		}
 
 		return str;

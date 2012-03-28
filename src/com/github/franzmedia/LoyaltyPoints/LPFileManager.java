@@ -17,6 +17,8 @@ public class LPFileManager {
 		YamlConfiguration yConfig = loadList();
 		if (yConfig.contains(playerName + ".Points")) { // old guy...
 			int points = yConfig.getInt(playerName + ".Points");
+			int time = yConfig.getInt(playerName + ".Time");
+			a.LoyaltTime.put(playerName, time);
 			a.loyaltyMap.put(playerName, points);
 			return true;
 		} else { // must be a new guy!
@@ -31,7 +33,9 @@ public class LPFileManager {
 		for (i = 0; i < usesList.size(); i++) {
 			String playerName = usesList.get(i);
 			Integer points = a.loyaltyMap.get(playerName);
+			Integer time = a.LoyaltTime.get(playerName);
 			yConfig.set(playerName + ".Points", points);
+			yConfig.set(playerName + ".Time", time);
 		}
 		try {
 			yConfig.save(a.mapFile);

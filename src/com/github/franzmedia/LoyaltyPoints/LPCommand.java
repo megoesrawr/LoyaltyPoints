@@ -131,8 +131,8 @@ public class LPCommand implements CommandExecutor {
 			if (args[0].equalsIgnoreCase("reload")) {
 				if (sender.hasPermission("loyaltypoints.reload")) {
 					LPFileManager.save();
-					plugin.loadPointsData();
-					plugin.loadVariables();
+					plugin.onDisable();
+					plugin.onEnable();
 					sender.sendMessage(plugin.pluginTag + ChatColor.WHITE
 							+ " reloaded points data & configuration.");
 					return true;
