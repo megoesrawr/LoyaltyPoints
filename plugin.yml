@@ -1,0 +1,49 @@
+name: LoyaltyPoints
+main: com.github.franzmedia.LoyaltyPoints.LoyaltyPoints
+version: 1.2
+commands:
+    lp:
+        description: LoyaltyPoints base command.
+        usage: <command>
+        aliases: [loyaltypoints]
+permissions:
+    loyaltypoints.check:
+        description: Allows player to be tracked, and check his/her own points.
+        default: op
+    loyaltypoints.check.other:
+        description: Allows player to check other players' points.
+        default: op
+    loyaltypoints.next:
+        description: Allows the player to check time left before updatet.
+        default: op
+    loyaltypoints.help:
+        description: Allows player to see possible commands.
+        default: op
+    loyaltypoints.top:
+        description: Lets you see who has the most points.
+        default: op
+    loyaltypoints.version:
+        description: Allows player to check the version.
+        default: op
+    loyaltypoints.reload:
+        description: Allows player to reload the config.
+        default: op
+    loyaltypoints.set:
+        description: Allows player to set a user's LoyaltyPoints
+        default: op
+    loyaltypoints.user:
+        description: Permissions package of LoyaltyPoints that is essential for a normal user.
+        children:
+            loyaltypoints.check: true
+            loyaltypoints.help: true
+            loyaltypoints.top: true
+        default: false
+    loyaltypoints.admin:
+        description: Permissions package of LoyaltyPoints that is essential for an administrator.
+        children:
+            loyaltypoints.user: true
+            loyaltypoints.check.other: true
+            loyaltypoints.version: true
+            loyaltypoints.reload: true
+            loyaltypoints.set: true
+        default: false
