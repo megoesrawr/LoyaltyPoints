@@ -28,7 +28,7 @@ public class LPCommand implements CommandExecutor {
 				if(sender.hasPermission("loyaltypoints.check")) {
 					sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(playerName))));
 				}else{
-					System.out.println("tesxt else");
+					plugin.debug("tesxt else");
 				}
 				sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(playerName))));
 				returnstr = true;
@@ -99,9 +99,9 @@ public class LPCommand implements CommandExecutor {
 		
 	
 	private boolean next(CommandSender sender) {
-		System.out.println(plugin.getTimeLeft(sender.getName()));
+		plugin.debug(""+plugin.getTimeLeft(sender.getName()));
 		String daten = plugin.getNiceNumber(plugin.getTimeLeft(sender.getName()));
-		System.out.println(daten+ "hej");
+		plugin.debug(daten+ "hej");
 		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + daten );
 	return true;
 		

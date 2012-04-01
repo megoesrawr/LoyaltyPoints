@@ -26,7 +26,7 @@ public class LPFileManager {
 			int totalTime = yConfig.getInt(playerName + ".totalTime");
 			plugin.getLoyaltTotalTime().put(playerName, totalTime);
 			plugin.getLoyaltyPoints().put(playerName, points);
-			System.out.println("FM TIME"+time);
+			plugin.debug("FM TIME"+time);
 			plugin.getLoyaltTime().put(playerName, time );
 			return true;
 		} else { // must be a new guy!
@@ -43,7 +43,7 @@ public class LPFileManager {
 			
 			
 			int points = plugin.getLoyaltyPoints().get(playerName);
-			System.out.println(plugin.getLoyaltTime().get(playerName));
+			plugin.debug(plugin.getLoyaltTime().get(playerName)+"");
 			int time = plugin.getLoyaltTime().get(playerName);
 			int totalTime = plugin.getLoyaltTotalTime().get(playerName);
 			yConfig.set(playerName + ".points", points);

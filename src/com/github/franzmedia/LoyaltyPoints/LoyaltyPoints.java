@@ -21,7 +21,7 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0;
 
-	private int debug = 1;
+	private int debug = 0;
 	
 	private Map<String, Integer> loyaltyPoints = new HashMap<String, Integer>(); //has the points 
 	private Map<String, Integer> loyaltTotalTime = new HashMap<String, Integer>(); // has the TOTAL TIME
@@ -101,7 +101,7 @@ public class LoyaltyPoints extends JavaPlugin {
 		cycleNumber = config.getInt("cycle-time-in-seconds");
 		 updateTimer = config.getInt("update-timer") * 20;
 		startingPoints = config.getInt("starting-points");
-		pluginTag = config.getString("plugin-tag");
+		pluginTag = colorize(config.getString("plugin-tag"));
 		selfcheckMessage = config.getString("self-check-message").replaceAll("%TAG%", pluginTag);
 		checkotherMessage = config.getString("check-otherplayer-message").replaceAll("%TAG%", pluginTag);
 
@@ -126,19 +126,19 @@ public class LoyaltyPoints extends JavaPlugin {
 		}
 		
 		Long time = new Date().getTime();
-		System.out.println(time);
-		System.out.println(getLoyaltTime().get(player));
+		debug(time+"");
+		debug(getLoyaltTime().get(player)+"");
 		getTimeComparison().put(player, (time-(getLoyaltTime().get(player)*1000))); 
-		System.out.println(getTimeComparison().get(player));
+		debug(getTimeComparison().get(player)+"");
 	}
 
 	public String colorize(String message) {
 		return message.replaceAll("&([a-f0-9])", ChatColor.COLOR_CHAR + "$1");
 	}
 	public int getTimeLeft(String player){
-System.out.println(loyaltTime.get(player));
+debug(loyaltTime.get(player)+"");
 		int str1 = getCycleNumber()-loyaltTime.get(player);
-System.out.println(str1);
+debug(str1+"");
 		return str1;
 	}
 	public String getNiceNumber(int millsec) {
@@ -234,7 +234,7 @@ System.out.println(str1);
 	 */
 
 	private void checkConfig() {
-System.out.println("hmm checkconfig");
+debug("hmm checkconfig");
 		String name = "config.yml";
 		File actual = new File(getDataFolder(), name);
 		if (!actual.exists()) {

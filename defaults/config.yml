@@ -28,5 +28,5 @@ plugin-tag: '&6[LoyaltyPoints]'
 # Message sent when checking your own Loyalty Points (fired using /lp)
 self-check-message: '%TAG% &3You have &b%POINTS% &3Loyalty Points.'
 # Message sent when checking another player's Loyalty Points (fired using /lp [playername])
-# e.g. /lp MeneXia
+# e.g. /lp KasperFranz
 check-otherplayer-message: '%TAG% &3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.'

@@ -22,7 +22,7 @@ public class LCListener implements Listener {
 	public void onPlayerLogout(PlayerQuitEvent event) {
 		
 	LPFileManager.save();
-	System.out.println("Spiller gik ud"+ event.getPlayer().getName());
+	plugin.debug("player went");
 	
 	}
 }
