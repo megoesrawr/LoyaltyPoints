@@ -25,7 +25,12 @@ public class LPCommand implements CommandExecutor {
 		String playerName = sender.getName();
 		boolean returnstr = false;
 		if (args.length == 0) {
-			if (sender instanceof Player && sender.hasPermission("loyaltypoints.check")) {
+			if (sender instanceof Player){
+				if(sender.hasPermission("loyaltypoints.check")) {
+					sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.loyaltyMap.get(playerName))));
+				}else{
+					System.out.println("tesxt else");
+				}
 				sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.loyaltyMap.get(playerName))));
 				returnstr = true;
 			} else {
@@ -73,13 +78,20 @@ public class LPCommand implements CommandExecutor {
 					} else{
 						if (plugin.loyaltyMap.containsKey(args[0])) {
 							sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", args[0]).replaceAll("%POINTS%",String.valueOf(plugin.loyaltyMap.get(args[0]))));
+							returnstr = true;
 						} else {
 							sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + " Player not found.");
+							returnstr = true;
 						}
 					}
+				}else{
+					sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + "You can't compare");
+					returnstr = true;
 				}
 			}
 		}
+		
+
 	return returnstr;
 	}
 			

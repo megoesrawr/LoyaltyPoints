@@ -19,22 +19,29 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class LoyaltyPoints extends JavaPlugin {
 	public final Logger logger = Logger.getLogger("Minecraft");
 
-	public int increment = 1, cycleNumber = 600, updateTimer = cycleNumber / 3,  startingPoints = 0;;
+	public int increment = 1, cycleNumber = 600, updateTimer = cycleNumber / 3;
+
+	public int startingPoints = 0;
 	
-	public Map<String, Integer> loyaltyMap = new HashMap<String, Integer>();
-	public Map<String, Integer> LoyaltTime = new HashMap<String, Integer>();
-	public Map<String, Long> LoyaltStart = new HashMap<String, Long>();
-	public Map<String, Long> timeComparison = new HashMap<String, Long>();
+	private LoyaltyPointsUsers[] players; 
+	
+	
+	
+	
+	private Map<String, Integer> Points = new HashMap<String, Integer>();
+	private Map<String, Integer> TotalTime = new HashMap<String, Integer>();
+	private Map<String, Long> LoyaltStart = new HashMap<String, Long>();
+	private Map<String, Long> timeComparison = new HashMap<String, Long>();
 	public FileConfiguration config;
 	public File mapFile;
 	public FileConfiguration mapFileConfig;
 	public LPFileManager lcFM = new LPFileManager(this);
 	
 	/* Messages  EDITABLE					 */ 
-	public String pluginTag = "&6[LoyaltyPoints]";
+	public String pluginTag = colorize("&6[LoyaltyPoints]");
 	public String consoleCheck = pluginTag+ " Sorry, I don't track consoles.";
-	public String selfcheckMessage = "%TAG% &3You have &b%POINTS% &3Loyalty Points.";
-	public String checkotherMessage = "%TAG% &3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.";
+	public String selfcheckMessage = colorize( pluginTag + "&3You have &b%POINTS% &3Loyalty Points.");
+	public String checkotherMessage = colorize("%TAG% &3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.");
 	
 	// public List<String> milestones = new ArrayList<String>();
 	// public Map<String, List<Integer>> rewardsTracker = new HashMap<String,
@@ -62,11 +69,12 @@ public class LoyaltyPoints extends JavaPlugin {
 	}
 
 	public void onEnable() {
+		
 		mapFile = new File(this.getDataFolder(), "points.yml");
 		mapFileConfig = YamlConfiguration.loadConfiguration(mapFile);
 		loadPointsData();
 		checkConfig();
-		loadVariables();
+	//	loadVariables();
 		getCommand("lp").setExecutor(new LPCommand(this));
 		this.getServer().getPluginManager()
 				.registerEvents(new LCListener(this), this);
@@ -110,8 +118,8 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	public void kickStart(String player) {
 		if (!this.loyaltyMap.containsKey(player)) {
-			if (!LPFileManager.load(player)) {
-				this.loyaltyMap.put(player, this.startingPoints);
+			if (!LPFileManager.load(player)) { // NEW ONE
+				this.loyaltyMap.put(player, startingPoints);
 				this.LoyaltTime.put(player, 0);
 			}
 		}
@@ -126,6 +134,9 @@ public class LoyaltyPoints extends JavaPlugin {
 	}
 
 	public String colorize(String message) {
+		
+		
+		System.out.println("funger dette eller hvad? "+message);
 		return message.replaceAll("&([a-f0-9])", ChatColor.COLOR_CHAR + "$1");
 	}
 
