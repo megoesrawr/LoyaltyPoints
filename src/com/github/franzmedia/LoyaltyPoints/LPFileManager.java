@@ -1,5 +1,6 @@
 package com.github.franzmedia.LoyaltyPoints;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,19 +8,26 @@ import java.util.List;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class LPFileManager {
-	public static LoyaltyPoints a;
+	private static File mapFile;
+	public static LoyaltyPoints plugin;
 
 	public LPFileManager(LoyaltyPoints isCool) {
-		a = isCool;
+		plugin = isCool;
+		mapFile = new File(plugin.getDataFolder(), "points.yml");
 	}
 
 	public static boolean load(String playerName) {
-		YamlConfiguration yConfig = loadList();
-		if (yConfig.contains(playerName + ".Points")) { // old guy...
-			int points = yConfig.getInt(playerName + ".Points");
-			int time = yConfig.getInt(playerName + ".Time");
-			a.LoyaltTime.put(playerName, time);
-			a.loyaltyMap.put(playerName, points);
+		YamlConfiguration yConfig = YamlConfiguration.loadConfiguration(mapFile);
+		if (yConfig.contains(playerName + ".points")) { // old guy...
+			int points = yConfig.getInt(playerName + ".points");
+			
+			int time = 0;
+			time = yConfig.getInt(playerName + ".time");
+			int totalTime = yConfig.getInt(playerName + ".totalTime");
+			plugin.getLoyaltTotalTime().put(playerName, totalTime);
+			plugin.getLoyaltyPoints().put(playerName, points);
+			System.out.println("FM TIME"+time);
+			plugin.getLoyaltTime().put(playerName, time );
 			return true;
 		} else { // must be a new guy!
 			return false;
@@ -27,27 +35,25 @@ public class LPFileManager {
 	}
 
 	public static void save() {
-		YamlConfiguration yConfig = loadList();
+		YamlConfiguration yConfig = YamlConfiguration.loadConfiguration(mapFile);
 		int i;
-		List<String> usesList = new ArrayList<String>(a.loyaltyMap.keySet());
-		for (i = 0; i < usesList.size(); i++) {
-			String playerName = usesList.get(i);
-			Integer points = a.loyaltyMap.get(playerName);
-			Integer time = a.LoyaltTime.get(playerName);
-			yConfig.set(playerName + ".Points", points);
-			yConfig.set(playerName + ".Time", time);
+		List<String> userList = new ArrayList<String>(plugin.getLoyaltyPoints().keySet());
+		for (i = 0; i < userList.size(); i++) {
+			String playerName = userList.get(i);
+			
+			
+			int points = plugin.getLoyaltyPoints().get(playerName);
+			System.out.println(plugin.getLoyaltTime().get(playerName));
+			int time = plugin.getLoyaltTime().get(playerName);
+			int totalTime = plugin.getLoyaltTotalTime().get(playerName);
+			yConfig.set(playerName + ".points", points);
+			yConfig.set(playerName + ".time", time);
+			yConfig.set(playerName + ".totalTime", totalTime);
 		}
-		try {
-			yConfig.save(a.mapFile);
+		try { // COULDN'T SAVE IT
+			yConfig.save(mapFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-
-	public static YamlConfiguration loadList() {
-		YamlConfiguration cyril = YamlConfiguration
-				.loadConfiguration(a.mapFile);
-		return cyril;
-	}
-
 }

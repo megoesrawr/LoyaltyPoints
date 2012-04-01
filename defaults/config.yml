@@ -1,0 +1,32 @@
+# LoyaltyPoints config file
+
+# How many Loyalty Points should this plugin give after every time cycle?
+increment-per-cycle: 1
+
+# How long should this time cycle be?
+# This is based on when the player logs on.
+cycle-time-in-seconds: 600
+
+# How often should the plugin update points?
+# In an attempt to save system resources, this plugin is designed to update all points
+# at a certain interval. This update timer must be less than or equal to "cycle-time-in-seconds."
+# The timer updates points every x seconds since server start.
+# I suggest that if you want a fast but accurate point tracker, you should set this timer
+# to 60 seconds (every 1 minute), a fourth (cycle-time divided by 4) or a half of the cycle time (cycle-time-in-seconds divided by 2)
+update-timer: 150
+
+# When the player logs on, how many Loyalty Points should he/she already have?
+starting-points: 0
+
+# In-game chat tag of the plugin
+# Supports color codes: &a-f|0-9
+# Use %TAG% (case-sensitive) to reference this tag.
+plugin-tag: '&6[LoyaltyPoints]'
+
+# %PLAYERNAME% specifies the player name being checked.
+# %POINTS% specifies the amount of Loyalty Points the player has.
+# Message sent when checking your own Loyalty Points (fired using /lp)
+self-check-message: '%TAG% &3You have &b%POINTS% &3Loyalty Points.'
+# Message sent when checking another player's Loyalty Points (fired using /lp [playername])
+# e.g. /lp MeneXia
+check-otherplayer-message: '%TAG% &3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.'

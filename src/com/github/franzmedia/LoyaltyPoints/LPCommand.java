@@ -3,7 +3,6 @@ package com.github.franzmedia.LoyaltyPoints;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,11 +26,11 @@ public class LPCommand implements CommandExecutor {
 		if (args.length == 0) {
 			if (sender instanceof Player){
 				if(sender.hasPermission("loyaltypoints.check")) {
-					sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.loyaltyMap.get(playerName))));
+					sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(playerName))));
 				}else{
 					System.out.println("tesxt else");
 				}
-				sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.loyaltyMap.get(playerName))));
+				sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(playerName))));
 				returnstr = true;
 			} else {
 				sender.sendMessage(plugin.consoleCheck);
@@ -73,11 +72,11 @@ public class LPCommand implements CommandExecutor {
 					Player trick = Bukkit.getPlayer(args[0]);
 					if (trick != null) {
 						String other1 = trick.getName();
-						sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", other1).replaceAll("%POINTS%",String.valueOf(plugin.loyaltyMap.get(other1))));
+						sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", other1).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(other1))));
 						returnstr = true;
 					} else{
-						if (plugin.loyaltyMap.containsKey(args[0])) {
-							sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", args[0]).replaceAll("%POINTS%",String.valueOf(plugin.loyaltyMap.get(args[0]))));
+						if (plugin.getLoyaltyPoints().containsKey(args[0])) {
+							sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", args[0]).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(args[0]))));
 							returnstr = true;
 						} else {
 							sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + " Player not found.");
@@ -98,17 +97,11 @@ public class LPCommand implements CommandExecutor {
 		
 
 		
-	/*
-	private boolean playtime(CommandSender sender, String[] args) {
-		
-		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + "Currently: " + plugin.getNiceNumber(plugin.getPlayTime(sender.getName())));
-				
-		
-		return true;
-	} */
-
+	
 	private boolean next(CommandSender sender) {
-		String daten = plugin.getNiceNumber((int) (plugin.cycleNumber*1000-(new Date().getTime() - plugin.timeComparison.get(sender.getName()))));
+		System.out.println(plugin.getTimeLeft(sender.getName()));
+		String daten = plugin.getNiceNumber(plugin.getTimeLeft(sender.getName()));
+		System.out.println(daten+ "hej");
 		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + daten );
 	return true;
 		
@@ -137,13 +130,13 @@ private boolean set(CommandSender sender, String setPlayer, String[] args) {
 	
 	if (!(args.length == 3)) {
 		sender.sendMessage(ChatColor.RED  + "/lp set [username] [amount]");
-	}else 	if(!plugin.loyaltyMap.containsKey(setPlayer)) {
+	}else 	if(!plugin.getLoyaltyPoints().containsKey(setPlayer)) {
 		sender.sendMessage(ChatColor.RED  + "Player not found.");
 		
 	}else{	
 		try {
 			int amount = Integer.parseInt(args[2]);
-			plugin.loyaltyMap.put(setPlayer, amount);
+			plugin.getLoyaltyPoints().put(setPlayer, amount);
 			sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + setPlayer+"s Loyalty Points was changed to "+ amount);
 		} catch (NumberFormatException e) {
 			sender.sendMessage(ChatColor.RED + "Number expected after /lp delete [username]");
@@ -164,10 +157,10 @@ boolean returnstr = true;
 	}
 
 	List<User> users = new ArrayList<User>();
-	Iterator<String> it = plugin.loyaltyMap.keySet().iterator();
+	Iterator<String> it = plugin.getLoyaltyPoints().keySet().iterator();
 	while(it.hasNext()) {
 		String player = it.next();
-		users.add(new User(player, plugin.loyaltyMap.get(player)));
+		users.add(new User(player, plugin.getLoyaltyPoints().get(player)));
 	 }
 
 	if (users.isEmpty()) {

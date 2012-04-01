@@ -6,10 +6,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class CountScheduler implements Runnable {
-	private LoyaltyPoints _p;
+	private int debug = 1;
+	private LoyaltyPoints plugin;
 
 	public CountScheduler(LoyaltyPoints isCool) {
-		_p = isCool;
+		plugin = isCool;
 	}
 
 	/*
@@ -23,27 +24,35 @@ public class CountScheduler implements Runnable {
 	public void run() {
 		Long now = new Date().getTime();
 		
-		for (Player p : _p.getServer().getOnlinePlayers()) {
-			String m = p.getName();
-			if ((now - _p.timeComparison.get(m)) >= (_p.cycleNumber*1000)) { // cycleNumber
-																		// amount
-																		// of
-																		// seconds
-																		// has
-																		// passed.
-				_p.loyaltyMap.put(m, _p.loyaltyMap.get(m) + _p.increment);
-				_p.timeComparison.put(m, now);
+		
+		for (Player player : plugin.getServer().getOnlinePlayers()) {
+			String m = player.getName();
+			if ((now - plugin.getTimeComparison().get(m)) >= (plugin.getCycleNumber()*1000)) { // cycleNumber amount of seconds has passed
 			
-			}
-			
-			_p.LoyaltTime.put(m, (_p.LoyaltTime.get(m)+ (int) ((now - _p.LoyaltStart.get(m))/1000) ));
-			
-			_p.LoyaltStart.put(m, now);
+				plugin.getLoyaltyPoints().put(m, plugin.getLoyaltyPoints().get(m) + plugin.getIncrement());
+				plugin.getTimeComparison().put(m, now);
+				debug("loyalt før: "+ plugin.getLoyaltTime().get(m));
+				plugin.getLoyaltTime().put(m, 0);
+				debug("loyalt efter: "+ plugin.getLoyaltTime().get(m));
+				
 		}
-		Bukkit.getServer()
-				.getScheduler()
-				.scheduleSyncDelayedTask(_p, new CountScheduler(_p),
-						(long) _p.updateTimer);
+			debug("kører now:"+ now + " timecomparison: " + plugin.getTimeComparison().get(m) +"DIF: "+(now - plugin.getTimeComparison().get(m)) + " cycle:" + plugin.getCycleNumber()*1000 );
+			plugin.getLoyaltTime().put(m, (plugin.getLoyaltTime().get(m)+ (int) ((now - plugin.getLoyaltStart().get(m))/1000) ));
+			plugin.getLoyaltTotalTime().put(m, (plugin.getLoyaltTotalTime().get(m)+ (int) ((now - plugin.getLoyaltStart().get(m))/1000) ));
+			plugin.getLoyaltStart().put(m, now);
+		}
+		
+		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new CountScheduler(plugin), (long) plugin.getUpdateTimer());
+	}
+	
+	public void debug(String txt){
+		
+		
+		if(debug == 1){
+			System.out.println(txt);
+		}
+		
+		
 	}
 
 }

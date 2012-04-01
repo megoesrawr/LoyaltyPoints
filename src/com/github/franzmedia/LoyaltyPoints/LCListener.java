@@ -9,8 +9,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class LCListener implements Listener {
 	private final LoyaltyPoints plugin;
 
-	public LCListener(LoyaltyPoints isCool) {
-		plugin = isCool;
+	public LCListener(LoyaltyPoints plugin) {
+		this.plugin = plugin;
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -22,5 +22,7 @@ public class LCListener implements Listener {
 	public void onPlayerLogout(PlayerQuitEvent event) {
 		
 	LPFileManager.save();
+	System.out.println("Spiller gik ud"+ event.getPlayer().getName());
+	
 	}
 }
