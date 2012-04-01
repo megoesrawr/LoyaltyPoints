@@ -102,8 +102,8 @@ public class LoyaltyPoints extends JavaPlugin {
 		 updateTimer = config.getInt("update-timer") * 20;
 		startingPoints = config.getInt("starting-points");
 		pluginTag = colorize(config.getString("plugin-tag"));
-		selfcheckMessage = config.getString("self-check-message").replaceAll("%TAG%", pluginTag);
-		checkotherMessage = config.getString("check-otherplayer-message").replaceAll("%TAG%", pluginTag);
+		selfcheckMessage = colorize(config.getString("self-check-message").replaceAll("%TAG%", pluginTag));
+		checkotherMessage = colorize(config.getString("check-otherplayer-message").replaceAll("%TAG%", pluginTag));
 
 		// ConfigurationSection milestonesCS =
 		// config.getConfigurationSection("points-milestones.Amounts");
@@ -137,7 +137,9 @@ public class LoyaltyPoints extends JavaPlugin {
 	}
 	public int getTimeLeft(String player){
 debug(loyaltTime.get(player)+"");
-		int str1 = getCycleNumber()-loyaltTime.get(player);
+long now = new Date().getTime();
+		int str1= (int) (getCycleNumber()-(now-timeComparison.get(player))/1000);
+//		int str1 = getCycleNumber()-loyaltTime.get(player);
 debug(str1+"");
 		return str1;
 	}

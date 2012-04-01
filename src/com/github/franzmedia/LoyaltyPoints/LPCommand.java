@@ -101,8 +101,8 @@ public class LPCommand implements CommandExecutor {
 	private boolean next(CommandSender sender) {
 		plugin.debug(""+plugin.getTimeLeft(sender.getName()));
 		String daten = plugin.getNiceNumber(plugin.getTimeLeft(sender.getName()));
-		plugin.debug(daten+ "hej");
-		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + daten );
+		
+		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + "There are around "+ daten+ " until next payout" );
 	return true;
 		
 	}

@@ -1,6 +1,5 @@
 package com.github.franzmedia.LoyaltyPoints;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,16 +7,15 @@ import java.util.List;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class LPFileManager {
-	private static File mapFile;
-	public static LoyaltyPoints plugin;
+	
+	private static LoyaltyPoints plugin;
 
 	public LPFileManager(LoyaltyPoints isCool) {
 		plugin = isCool;
-		mapFile = new File(plugin.getDataFolder(), "points.yml");
 	}
 
 	public static boolean load(String playerName) {
-		YamlConfiguration yConfig = YamlConfiguration.loadConfiguration(mapFile);
+		YamlConfiguration yConfig = YamlConfiguration.loadConfiguration(plugin.mapFile);
 		if (yConfig.contains(playerName + ".points")) { // old guy...
 			int points = yConfig.getInt(playerName + ".points");
 			
@@ -35,7 +33,7 @@ public class LPFileManager {
 	}
 
 	public static void save() {
-		YamlConfiguration yConfig = YamlConfiguration.loadConfiguration(mapFile);
+		YamlConfiguration yConfig = YamlConfiguration.loadConfiguration(plugin.mapFile);
 		int i;
 		List<String> userList = new ArrayList<String>(plugin.getLoyaltyPoints().keySet());
 		for (i = 0; i < userList.size(); i++) {
@@ -51,7 +49,7 @@ public class LPFileManager {
 			yConfig.set(playerName + ".totalTime", totalTime);
 		}
 		try { // COULDN'T SAVE IT
-			yConfig.save(mapFile);
+			yConfig.save(plugin.mapFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
