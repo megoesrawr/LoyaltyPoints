@@ -7,6 +7,9 @@ commands:
         usage: <command>
         aliases: [loyaltypoints]
 permissions:
+	loyaltypoints.check.self:
+		description: Allow player to check the players own points.
+		default: true
     loyaltypoints.check.other:
         description: Allows player to check other players' points.
         default: true
@@ -28,10 +31,12 @@ permissions:
     loyaltypoints.set:
         description: Allows player to set a user's LoyaltyPoints
         default: op
+     
+        
     loyaltypoints.user:
         description: Permissions package of LoyaltyPoints that is essential for a normal user.
         children:
-            loyaltypoints.check: true
+            loyaltypoints.check.self: true
             loyaltypoints.help: true
             loyaltypoints.top: true
         default: false

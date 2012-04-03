@@ -25,12 +25,11 @@ public class LPCommand implements CommandExecutor {
 		boolean returnstr = false;
 		if (args.length == 0) {
 			if (sender instanceof Player){
-				if(sender.hasPermission("loyaltypoints.check")) {
+				if(sender.hasPermission("loyaltypoints.check.self")) {
 					sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(playerName))));
 				}else{
 					plugin.debug("tesxt else");
 				}
-				sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(playerName))));
 				returnstr = true;
 			} else {
 				sender.sendMessage(plugin.consoleCheck);
