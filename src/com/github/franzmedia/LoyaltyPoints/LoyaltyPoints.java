@@ -21,7 +21,7 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0;
 
-	private int debug = 1;
+	private int debug = 0;
 	
 	private Map<String, Integer> loyaltyPoints = new HashMap<String, Integer>(); //has the points 
 	private Map<String, Integer> loyaltTotalTime = new HashMap<String, Integer>(); // has the TOTAL TIME
