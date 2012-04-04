@@ -15,7 +15,12 @@ cycle-time-in-seconds: 600
 # to 60 seconds (every 1 minute), a fourth (cycle-time divided by 4) or a half of the cycle time (cycle-time-in-seconds divided by 2)
 update-timer: 150
 
-# When the player logs on, how many Loyalty Points should he/she already have?
+#
+#
+# how often should the script save the points, play time and so on (def: 3600 (every 1 hour))
+SaveTimer: 3600 
+
+# When a new player logs on, how many Loyalty Points should he/she already have?
 starting-points: 0
 
 # In-game chat tag of the plugin

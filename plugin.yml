@@ -1,6 +1,6 @@
 name: LoyaltyPoints
 main: com.github.franzmedia.LoyaltyPoints.LoyaltyPoints
-version: 1.0.3
+version: 1.0.4
 commands:
     lp:
         description: LoyaltyPoints base command.
@@ -8,7 +8,7 @@ commands:
         aliases: [loyaltypoints]
 permissions:
     loyaltypoints.check.self:
-        description: Allows player to check other players' points.
+        description: Allows player to check his player points.
         default: true
     loyaltypoints.check.other:
         description: Allows player to check other players' points.
@@ -31,7 +31,9 @@ permissions:
     loyaltypoints.set:
         description: Allows player to set a user's LoyaltyPoints
         default: op
-     
+    loyaltypoints.playtime:
+        description: Allows a player to see it's playtime.
+        default: true
         
     loyaltypoints.user:
         description: Permissions package of LoyaltyPoints that is essential for a normal user.
