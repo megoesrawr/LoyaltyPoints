@@ -22,7 +22,6 @@ public class LPCommand implements CommandExecutor {
 
 	public boolean onCommand(CommandSender sender, Command cmd, String zhf, String[] args) {
 		String playerName = sender.getName();
-		boolean returnstr = false;
 		if (args.length == 0) {
 			if (sender instanceof Player){
 				if(sender.hasPermission("loyaltypoints.check.self")) {
@@ -30,40 +29,51 @@ public class LPCommand implements CommandExecutor {
 				}else{
 					plugin.debug("tesxt else");
 				}
-				returnstr = true;
+				 
 			} else {
 				sender.sendMessage(plugin.consoleCheck);
-				returnstr = false;
+				 
 			}
 		}else{
 			if(args[0].equalsIgnoreCase("help")) {
 				/* HELP COMMAND */ 
-				returnstr = help(sender);
+				 help(sender);
 				
 			}else if(args[0].equalsIgnoreCase("top") && sender.hasPermission("loyaltypoints.top")) {
 				/* TOP COMMAND */ 
-				returnstr = top(sender,args);
+				 top(sender,args);
 				
 			}else if (args[0].equalsIgnoreCase("set") && sender.hasPermission("loyaltypoints.set")) {
 				/* SET COMMAND */ 
-				returnstr = set(sender, args[1], args);
+				set(sender, args[1], args);
 				
 			}else if (args[0].equalsIgnoreCase("version") && sender.hasPermission("loyaltypoints.version")) {
 				/* VERSION COMMAND */ 
-				returnstr = version(sender);
+				version(sender);
 				
 			}else if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("loyaltypoints.reload")) {
 				/* RELOAD COMMAND */ 
-				returnstr = reload(sender);
-				
+				reload(sender);
 			}else if(args[0].equalsIgnoreCase("next") && sender.hasPermission("loyaltypoints.next")){
-				/* NEXT COMMAND */ 
-				returnstr = next(sender);
-	/*		}else if(args[0].equalsIgnoreCase("playtime") && sender.hasPermission("loyaltypoints.playtime")){
-			//	 PlayTime 
-				returnstr = playtime(sender,args); 
+				if (sender instanceof Player){
+					/* NEXT COMMAND */ 
+					next(sender);
+				}else{ // is cmd
+					sender.sendMessage(plugin.consoleCheck);
+					
+				}
+			}else if(args[0].equalsIgnoreCase("playtime") && sender.hasPermission("loyaltypoints.playtime")){ 
+				if (sender instanceof Player){
+					/*	 PlayTime */
+								
+					 playtime(sender,args);
+				}else{ // is cmd
+					sender.sendMessage(plugin.consoleCheck);
+					
+				}
+				 
 				
-	*/			
+				
 			}else{	
 				// compare other ppl
 			
@@ -72,60 +82,69 @@ public class LPCommand implements CommandExecutor {
 					if (trick != null) {
 						String other1 = trick.getName();
 						sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", other1).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(other1))));
-						returnstr = true;
+				
 					} else{
 						if (plugin.getLoyaltyPoints().containsKey(args[0])) {
 							sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", args[0]).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(args[0]))));
-							returnstr = true;
+			
 						} else {
 							sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + " Player not found.");
-							returnstr = true;
+			
 						}
 					}
 				}else{
 					sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + "You can't compare");
-					returnstr = true;
+			
 				}
 			}
 		}
+		return true;
 		
 
-	return returnstr;
+	
 	}
 			
 		
 
 		
 	
-	private boolean next(CommandSender sender) {
+	private void playtime(CommandSender sender, String[] args) {
+		plugin.debug(""+plugin.getPlayTime(sender.getName()));
+		String daten = plugin.getNiceNumber(plugin.getPlayTime(sender.getName()));
+		
+		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + "You have been online for "+ daten );
+	
+		
+	}
+
+	private void next(CommandSender sender) {
 		plugin.debug(""+plugin.getTimeLeft(sender.getName()));
 		String daten = plugin.getNiceNumber(plugin.getTimeLeft(sender.getName()));
 		
 		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + "There are around "+ daten+ " until next payout" );
-	return true;
 		
 	}
 
 	
 
 
-private boolean reload(CommandSender sender) {
+private void reload(CommandSender sender) {
 	plugin.onDisable();
 	plugin.onEnable();
 	sender.sendMessage(plugin.pluginTag + ChatColor.WHITE
 			+ " reloaded points data & configuration.");
-	return true;
+	
 	}
 
-private boolean version(CommandSender sender) {
+private void version(CommandSender sender) {
 	
 
 		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + " version " + plugin.getDescription().getVersion());
-return true;
+
 }
 
-private boolean set(CommandSender sender, String setPlayer, String[] args) {
-	boolean returnstr = true;
+private void set(CommandSender sender, String setPlayer, String[] args) {
+	
 	
 	if (!(args.length == 3)) {
 		sender.sendMessage(ChatColor.RED  + "/lp set [username] [amount]");
@@ -141,11 +160,10 @@ private boolean set(CommandSender sender, String setPlayer, String[] args) {
 			sender.sendMessage(ChatColor.RED + "Number expected after /lp delete [username]");
 		}
 	}
-	return returnstr;
+	
 }
 
-private boolean top(CommandSender sender,String[] args) {
-boolean returnstr = true;
+private void top(CommandSender sender,String[] args) {
 	int maxTop = 10;
 	if (args.length == 2) {
 		try {
@@ -176,10 +194,10 @@ boolean returnstr = true;
 				+ ChatColor.BLUE + users.get(a).points + " points");
 	}
 	
-		return returnstr;
+	
 	}
 
-private boolean help(CommandSender sender){
+private void help(CommandSender sender){
 	sender.sendMessage(ChatColor.DARK_AQUA + "---------" + ChatColor.AQUA + " LoyaltyPoints Help " + ChatColor.DARK_AQUA + "---------");
 	sender.sendMessage(ChatColor.AQUA + "/loyaltypoints [/lp] "	+ ChatColor.GREEN + " - Checks your Loyalty Points");
 	sender.sendMessage(ChatColor.AQUA + "/lp [username]" + ChatColor.GREEN	+ "- checks the specified player's Loyalty Points");
@@ -188,7 +206,7 @@ private boolean help(CommandSender sender){
 	sender.sendMessage(ChatColor.DARK_AQUA + "---------"
 			+ ChatColor.AQUA + " LoyaltyPoints Help "
 			+ ChatColor.DARK_AQUA + "---------");
-	return true;
+	
 }
 
 class PointsComparator implements Comparator<User> {

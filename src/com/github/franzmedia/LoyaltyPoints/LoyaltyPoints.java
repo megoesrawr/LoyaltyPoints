@@ -20,7 +20,7 @@ public class LoyaltyPoints extends JavaPlugin {
 	public final Logger logger = Logger.getLogger("Minecraft");
 
 	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0;
-
+	private int SaveTimer = 3600; // 1 time
 	private int debug = 0;
 	
 	private Map<String, Integer> loyaltyPoints = new HashMap<String, Integer>(); //has the points 
@@ -83,7 +83,6 @@ public class LoyaltyPoints extends JavaPlugin {
 		 * .logger.severe("[LoyaltyPoints] Milestones paying feature disabled."
 		 * ); economyPresent = false; }
 		 */
-			 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new CountScheduler(this),(long) updateTimer);
 		info(this.getDescription(), "enabled");
 	}
@@ -104,6 +103,17 @@ public class LoyaltyPoints extends JavaPlugin {
 		pluginTag = colorize(config.getString("plugin-tag"));
 		selfcheckMessage = colorize(config.getString("self-check-message").replaceAll("%TAG%", pluginTag));
 		checkotherMessage = colorize(config.getString("check-otherplayer-message").replaceAll("%TAG%", pluginTag));
+		
+		if(!config.contains("SaveTimer")){
+			config.set("SaveTimer", "3600");
+			try {
+				config.save(new File(this.getDataFolder(), "config.yml"));
+			} catch (IOException e) {
+			System.out.println("ERROR while loading new variable");
+			}
+		}else{
+			SaveTimer = config.getInt("SaveTimer");
+		}
 
 		// ConfigurationSection milestonesCS =
 		// config.getConfigurationSection("points-milestones.Amounts");
@@ -328,6 +338,11 @@ public void debug(String txt){
 		
 		
 	}
+
+public int getSaveTimer() {
+	return SaveTimer;
+}
+
 	
 
 }

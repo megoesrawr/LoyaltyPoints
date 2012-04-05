@@ -1,6 +1,6 @@
 name: LoyaltyPoints
 main: com.github.franzmedia.LoyaltyPoints.LoyaltyPoints
-version: 1.0.4
+version: 1.0.5
 commands:
     lp:
         description: LoyaltyPoints base command.
@@ -39,14 +39,16 @@ permissions:
         description: Permissions package of LoyaltyPoints that is essential for a normal user.
         children:
             loyaltypoints.check.self: true
+            loyaltypoints.next: true
             loyaltypoints.help: true
             loyaltypoints.top: true
+            loyaltypoints.playtime: true
         default: false
     loyaltypoints.admin:
         description: Permissions package of LoyaltyPoints that is essential for an administrator.
         children:
-            loyaltypoints.user: true
             loyaltypoints.check.other: true
+            loyaltypoints.user: true
             loyaltypoints.version: true
             loyaltypoints.reload: true
             loyaltypoints.set: true
