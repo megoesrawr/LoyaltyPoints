@@ -31,21 +31,26 @@ public class CountScheduler implements Runnable {
 		}
 		int rest = 0;
 		int cycle = plugin.getCycleNumber()*1000;
-		for (Player player : plugin.getServer().getOnlinePlayers()) {
-			String m = player.getName();
-			if ((now - plugin.getTimeComparison().get(m)) >= cycle) { // cycleNumber amount of seconds has passed
-				rest = (int) (now - plugin.getTimeComparison().get(m))-cycle;
-				plugin.getLoyaltyPoints().put(m, plugin.getLoyaltyPoints().get(m) + plugin.getIncrement());
-				plugin.getTimeComparison().put(m, (now+rest));
-				plugin.debug("loyalt before: "+ plugin.getLoyaltTime().get(m));
-				plugin.getLoyaltTime().put(m, rest);
-				plugin.debug("loyalt after: "+ plugin.getLoyaltTime().get(m));		
-		}else{
-			plugin.getLoyaltTime().put(m, (plugin.getLoyaltTime().get(m)+ (int) ((now - plugin.getLoyaltStart().get(m))/1000) ));	
-		}
-			plugin.debug("running now:"+ now + " timecomparison: " + plugin.getTimeComparison().get(m) +"DIF: "+(now - plugin.getTimeComparison().get(m)) + " cycle:" + cycle );
-			plugin.getLoyaltTotalTime().put(m, (plugin.getLoyaltTotalTime().get(m)+ (int) ((now - plugin.getLoyaltStart().get(m))/1000) ));
-			plugin.getLoyaltStart().put(m, now);
+		for (Player players : plugin.getServer().getOnlinePlayers()) {
+			
+			String player = players.getName();
+			if(plugin.getTimeComparison().get(player) == 0){
+				plugin.getTimeComparison().put(player, now);
+			}
+			
+			if ((now - plugin.getTimeComparison().get(player)) >= cycle) { // cycleNumber amount of seconds has passed
+				rest = (int) (now - plugin.getTimeComparison().get(player))-cycle;
+				plugin.getLoyaltyPoints().put(player, plugin.getLoyaltyPoints().get(player) + plugin.getIncrement());
+				plugin.getTimeComparison().put(player, (now+rest));
+				plugin.debug("loyalt before: "+ plugin.getLoyaltTime().get(player));
+				plugin.getLoyaltTime().put(player, rest);
+				plugin.debug("loyalt after: "+ plugin.getLoyaltTime().get(player));		
+			}else{
+				plugin.getLoyaltTime().put(player, (plugin.getLoyaltTime().get(player)+ (int) ((now - plugin.getLoyaltStart().get(player))/1000) ));	
+			}
+			plugin.debug("running now:"+ now + " timecomparison: " + plugin.getTimeComparison().get(player) +"DIF: "+(now - plugin.getTimeComparison().get(player)) + " cycle:" + cycle );
+			plugin.getLoyaltTotalTime().put(player, (plugin.getLoyaltTotalTime().get(player)+ (int) ((now - plugin.getLoyaltStart().get(player))/1000) ));
+			plugin.getLoyaltStart().put(player, now);
 		}	
 		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new CountScheduler(plugin), (long) plugin.getUpdateTimer());
 	}

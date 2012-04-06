@@ -18,7 +18,7 @@ public class LCListener implements Listener {
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void Velociraptor(final PlayerJoinEvent event) {
 		plugin.kickStart(event.getPlayer().getName());
-		
+		plugin.getTimeComparison().put(event.getPlayer().getName(), new Date().getTime());
 	}
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onPlayerLogout(PlayerQuitEvent event) {
@@ -33,6 +33,7 @@ public class LCListener implements Listener {
 	}
 		plugin.getLoyaltTotalTime().put(m, (plugin.getLoyaltTotalTime().get(m)+ (int) ((now - plugin.getLoyaltStart().get(m))/1000) ));
 		plugin.getLoyaltStart().put(m, now);
+		plugin.getTimeComparison().put(m, (long) 0);
 	
 	}
 }
