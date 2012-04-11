@@ -127,15 +127,11 @@ public class LoyaltyPoints extends JavaPlugin {
 				getLoyaltTotalTime().put(player, 0);
 				getLoyaltTime().put(player, 0);
 		}
-
-		if(!getTimeComparison().containsKey(player)){
-			getTimeComparison().put(player, new Date().getTime());
-		}
 		
 		Long time = new Date().getTime();
 		debug(time+"");
 		debug(getLoyaltTime().get(player)+"");
-		getTimeComparison().put(player, (time-(getLoyaltTime().get(player)*1000))); 
+		getTimeComparison().put(player,new Date().getTime()); 
 		debug(getTimeComparison().get(player)+"");
 	}
 

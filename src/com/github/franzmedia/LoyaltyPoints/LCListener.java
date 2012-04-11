@@ -17,19 +17,14 @@ public class LCListener implements Listener {
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void Velociraptor(final PlayerJoinEvent event) { 		
-		long time = new Date().getTime();
-		// PLAYER JOINS
-		plugin.debug("PLayer kom ind: Starttid:"+ plugin.getTimeComparison().get(event.getPlayer().getName()));
-		plugin.getTimeComparison().put(event.getPlayer().getName(), time);
-		plugin.debug("PLayer kom ind: Starttid:"+ plugin.getTimeComparison().get(event.getPlayer().getName()));
+		
+		plugin.debug("PLayer kom ind:" + plugin.getLoyaltTime().get(event.getPlayer().getName())+ " Starttid:"+  plugin.getTimeComparison().get(event.getPlayer().getName()));
 		plugin.kickStart(event.getPlayer().getName());
-		
-		
 		plugin.debug("PLayer kom ind: Starttid:"+ plugin.getTimeComparison().get(event.getPlayer().getName()));
 	}
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onPlayerLogout(PlayerQuitEvent event) {
-		plugin.debug("player logout");
+		plugin.debug("player logout"+ plugin.getLoyaltTime().get(event.getPlayer().getName()));
 		Long now = new Date().getTime();
 		String m = event.getPlayer().getName();
 		if ((now - plugin.getTimeComparison().get(m)) >= (plugin.getCycleNumber()*1000)) { // cycleNumber amount of seconds has passed
