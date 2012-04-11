@@ -20,14 +20,13 @@ public class LoyaltyPoints extends JavaPlugin {
 	public final Logger logger = Logger.getLogger("Minecraft");
 
 	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0;
-	private int SaveTimer = 3600; // 1 time
-	private int debug = 1;
+	private int SaveTimer = 3600; // 1 hour
+	private int debug = 0;
 	
 	private Map<String, Integer> loyaltyPoints = new HashMap<String, Integer>(); //has the points 
 	private Map<String, Integer> loyaltTotalTime = new HashMap<String, Integer>(); // has the TOTAL TIME
 	private Map<String, Integer> loyaltTime = new HashMap<String, Integer>(); // has the TIME SINCE LAST POINT
-	private Map<String, Long> loyaltStart = new HashMap<String, Long>();
-	private Map<String, Long> timeComparison = new HashMap<String, Long>();
+	private Map<String, Long> timeComparison = new HashMap<String, Long>(); // the timer to comapare with start / last login
 	
 	public FileConfiguration config;
 	public File mapFile;
@@ -73,8 +72,7 @@ public class LoyaltyPoints extends JavaPlugin {
 		checkConfig();
 		loadVariables();
 		getCommand("lp").setExecutor(new LPCommand(this));
-		this.getServer().getPluginManager()
-				.registerEvents(new LCListener(this), this);
+		this.getServer().getPluginManager().registerEvents(new LCListener(this), this);
 
 		/*
 		 * if (!setupEconomy()) {
@@ -83,7 +81,7 @@ public class LoyaltyPoints extends JavaPlugin {
 		 * .logger.severe("[LoyaltyPoints] Milestones paying feature disabled."
 		 * ); economyPresent = false; }
 		 */
-		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new CountScheduler(this),(long) updateTimer);
+		this.getServer().getScheduler().scheduleAsyncRepeatingTask(this, new CountScheduler(this),(long) 60L, updateTimer);
 		info(this.getDescription(), "enabled");
 	}
 
@@ -123,16 +121,15 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	public void kickStart(String player) { //get's the users elements and if new creates him
 		
-		if (!getLoyaltyPoints().containsKey(player)) {
-			if (!LPFileManager.load(player)) { // NEW ONE
+		if (!getLoyaltyPoints().containsKey(player) && !LPFileManager.load(player)) { //if player don't excists 
+			// we put startting points, TotalTime, and time since last point
 				getLoyaltyPoints().put(player, startingPoints);
 				getLoyaltTotalTime().put(player, 0);
 				getLoyaltTime().put(player, 0);
-			}
 		}
 
-		if(!getLoyaltStart().containsKey(player)){
-			getLoyaltStart().put(player, new Date().getTime());
+		if(!getTimeComparison().containsKey(player)){
+			getTimeComparison().put(player, new Date().getTime());
 		}
 		
 		Long time = new Date().getTime();
@@ -146,13 +143,20 @@ public class LoyaltyPoints extends JavaPlugin {
 		return message.replaceAll("&([a-f0-9])", ChatColor.COLOR_CHAR + "$1");
 	}
 	public int getTimeLeft(String player){
-debug(loyaltTime.get(player)+"");
 long now = new Date().getTime();
-		int str1= (int) (getCycleNumber()-(now-timeComparison.get(player))/1000);
-//		int str1 = getCycleNumber()-loyaltTime.get(player);
+
+// cycle = 300 
+// getLoyaltTime = 11
+// now - timecomparision (time spent) 
+		int str1= (int) (getCycleNumber()-(((now-timeComparison.get(player))/1000)+loyaltTime.get(player)));
 debug(str1+"");
 		return str1;
 	}
+	
+	
+	
+	
+	
 	public String getNiceNumber(int millsec) {
 		String str = "";
 		int g = 0;
@@ -318,10 +322,6 @@ debug("hmm checkconfig");
 
 	public Map<String, Integer> getLoyaltTotalTime() {
 		return loyaltTotalTime;
-	}
-
-	public Map<String, Long> getLoyaltStart() {
-		return loyaltStart;
 	}
 
 	

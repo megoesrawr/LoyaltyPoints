@@ -16,8 +16,8 @@ import org.bukkit.entity.Player;
 public class LPCommand implements CommandExecutor {
 	private final LoyaltyPoints plugin;
 
-	public LPCommand(LoyaltyPoints LP) {
-		plugin = LP;
+	public LPCommand(LoyaltyPoints plugin) {
+		this.plugin = plugin;
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String zhf, String[] args) {
@@ -35,7 +35,18 @@ public class LPCommand implements CommandExecutor {
 				 
 			}
 		}else{
-			if(args[0].equalsIgnoreCase("help")) {
+			
+			if(args[0].equalsIgnoreCase("add")){
+				
+				if(sender instanceof Player && sender.hasPermission("loyaltypoints.add")){
+					add(sender,args);
+				}else{
+					add(sender,args);	
+				}
+
+				
+			
+			}else if(args[0].equalsIgnoreCase("help")) {
 				/* HELP COMMAND */ 
 				 help(sender);
 				
@@ -45,7 +56,7 @@ public class LPCommand implements CommandExecutor {
 				
 			}else if (args[0].equalsIgnoreCase("set") && sender.hasPermission("loyaltypoints.set")) {
 				/* SET COMMAND */ 
-				set(sender, args[1], args);
+				set(sender, args);
 				
 			}else if (args[0].equalsIgnoreCase("version") && sender.hasPermission("loyaltypoints.version")) {
 				/* VERSION COMMAND */ 
@@ -126,7 +137,26 @@ public class LPCommand implements CommandExecutor {
 	}
 
 	
-
+private void add(CommandSender sender, String[] args){
+	int beforepoint = plugin.getLoyaltyPoints().get(args[1]);
+	int addPoints = Integer.parseInt(args[2]);
+	try{	
+		String player = args[1];
+		int newpoints = beforepoint+addPoints;
+		plugin.debug("bef:"+beforepoint+" add:"+addPoints+ " newP: "+newpoints);
+		
+		plugin.getLoyaltyPoints().put(player, newpoints);
+		sender.sendMessage("THERE ARE NOW added "+Integer.parseInt(args[2]) + " points to "+args[1]);
+	
+	
+	}catch(Exception exception){
+		sender.sendMessage("ooops error");
+	}
+	
+	
+	
+	
+}
 
 private void reload(CommandSender sender) {
 	plugin.onDisable();
@@ -143,15 +173,16 @@ private void version(CommandSender sender) {
 
 }
 
-private void set(CommandSender sender, String setPlayer, String[] args) {
+private void set(CommandSender sender, String[] args) {
 	
 	
-	if (!(args.length == 3)) {
+	if (args.length != 3) {
 		sender.sendMessage(ChatColor.RED  + "/lp set [username] [amount]");
-	}else 	if(!plugin.getLoyaltyPoints().containsKey(setPlayer)) {
+	}else 	if(!plugin.getLoyaltyPoints().containsKey(args[1])) {
 		sender.sendMessage(ChatColor.RED  + "Player not found.");
 		
-	}else{	
+	}else{
+		String setPlayer = args[1];
 		try {
 			int amount = Integer.parseInt(args[2]);
 			plugin.getLoyaltyPoints().put(setPlayer, amount);
