@@ -21,13 +21,11 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0;
 	private int SaveTimer = 3600; // 1 hour
-	private int debug = 0;
-	
-	private Map<String, Integer> loyaltyPoints = new HashMap<String, Integer>(); //has the points 
-	private Map<String, Integer> loyaltTotalTime = new HashMap<String, Integer>(); // has the TOTAL TIME
-	private Map<String, Integer> loyaltTime = new HashMap<String, Integer>(); // has the TIME SINCE LAST POINT
-	private Map<String, Long> timeComparison = new HashMap<String, Long>(); // the timer to comapare with start / last login
-	
+	private int debug = 1;
+	private int check = -10;
+	private String checkString = "";
+	private Map<String, LPUser> users = new HashMap<String, LPUser>();
+
 	public FileConfiguration config;
 	public File mapFile;
 	public FileConfiguration mapFileConfig;
@@ -58,14 +56,12 @@ public class LoyaltyPoints extends JavaPlugin {
 	public void onDisable() {
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new CountScheduler(this),(long) 0);
 		LPFileManager.save();
-		getLoyaltyPoints().clear();
-		getLoyaltTotalTime().clear();
+		users.clear();
 		// milestones.clear();
 		info(this.getDescription(), "disabled");
 	}
 
 	public void onEnable() {
-		
 		mapFile = new File(this.getDataFolder(), "points.yml");
 		mapFileConfig = YamlConfiguration.loadConfiguration(mapFile);
 		loadPointsData();
@@ -91,16 +87,77 @@ public class LoyaltyPoints extends JavaPlugin {
 			
 		}
 	}
+	
+	public String checkStringVariable(String name){
+		String str = "";
+		if(config.contains(name)){
+			str = config.getString(name);
+			debug(str + ""+name);
+		}else{
+			System.out.println(pluginTag + " You have a error with you config file around: " + name + " we use default option.");
+		}
+		return str;
+	}
+	
 
+	public int checkVariable(String name){
+		int str = -10;
+		
+		if(config.contains(name)){
+			str = config.getInt(name);
+			debug(str + ""+name);
+		}else{
+			System.out.println(pluginTag + " You have a error with you config file around: " + name + " we use default option.");
+		}
+		return str;
+	}
+	
+	
+	
+	
 	public void loadVariables() {
-		config = this.getConfig();
-		increment = config.getInt("increment-per-cycle");
-		cycleNumber = config.getInt("cycle-time-in-seconds");
-		 updateTimer = config.getInt("update-timer") * 20;
-		startingPoints = config.getInt("starting-points");
-		pluginTag = colorize(config.getString("plugin-tag"));
-		selfcheckMessage = colorize(config.getString("self-check-message").replaceAll("%TAG%", pluginTag));
-		checkotherMessage = colorize(config.getString("check-otherplayer-message").replaceAll("%TAG%", pluginTag));
+		
+		
+		 
+			config = this.getConfig();
+			 check = checkVariable("increment-per-cycle");
+			 if(check > 0){
+				 increment = check;
+			 }
+			
+			 check = checkVariable("cycle-time-in-seconds");
+			 if(check > 0){
+				 debug(cycleNumber+"");
+				 cycleNumber = check;
+				 debug(cycleNumber+"");
+			 } 
+		
+		 check = checkVariable("update-timer");
+				 
+		 if(check > 0){
+			 updateTimer = check*20;
+		 }
+		 check = checkVariable("starting-points");
+		 
+		 if(check > 0){
+			 startingPoints = check;
+		 }
+		 
+		checkString = checkStringVariable("plugin-tag");
+		 if(!checkString.isEmpty()){
+			 pluginTag = colorize(checkString);
+		 }
+		 checkString = checkStringVariable("self-check-message");
+		
+		 if(!checkString.isEmpty()){
+			 selfcheckMessage = colorize(checkString.replaceAll("%TAG%", pluginTag));
+		 }
+		
+		 checkString = checkStringVariable("check-otherplayer-message");
+			
+		 if(!checkString.isEmpty()){
+			 selfcheckMessage = colorize(checkString.replaceAll("%TAG%", pluginTag));
+		 }
 		
 		if(!config.contains("SaveTimer")){
 			config.set("SaveTimer", "3600");
@@ -121,30 +178,40 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	public void kickStart(String player) { //get's the users elements and if new creates him
 		
-		if (!getLoyaltyPoints().containsKey(player) && !LPFileManager.load(player)) { //if player don't excists 
-			// we put startting points, TotalTime, and time since last point
-				getLoyaltyPoints().put(player, startingPoints);
-				getLoyaltTotalTime().put(player, 0);
-				getLoyaltTime().put(player, 0);
+		if(users.containsKey(player)){
+			
+			users.get(player).setTimeComparison(new Date().getTime());
+		}else{
+		
+		if (!users.containsKey(player) && !LPFileManager.load(player)) { //if player don't excists 
+			// we put starting points, TotalTime, and time since last point
+			LPUser user = new LPUser(player, startingPoints, 0, 0, new Date().getTime());
+			users.put(player, user);
+			debug("NEW USER INSERTED"+player);
 		}
 		
-		Long time = new Date().getTime();
-		debug(time+"");
-		debug(getLoyaltTime().get(player)+"");
-		getTimeComparison().put(player,new Date().getTime()); 
-		debug(getTimeComparison().get(player)+"");
+		}
+		
+		debug(users.get(player).getTime()+"");
+		users.get(player).setTimeComparison(new Date().getTime());
+		
+		
 	}
 
 	public String colorize(String message) {
 		return message.replaceAll("&([a-f0-9])", ChatColor.COLOR_CHAR + "$1");
+		
+		
 	}
+	
+	
 	public int getTimeLeft(String player){
 long now = new Date().getTime();
 
 // cycle = 300 
 // getLoyaltTime = 11
 // now - timecomparision (time spent) 
-		int str1= (int) (getCycleNumber()-(((now-timeComparison.get(player))/1000)+loyaltTime.get(player)));
+		int str1= (int) (getCycleNumber()-(((now-users.get(player).getTimeComparison())/1000)+users.get(player).getTime()));
 debug(str1+"");
 		return str1;
 	}
@@ -286,26 +353,6 @@ debug("hmm checkconfig");
 		}
 	}
 
-	public int getPlayTime(String name) {
-		return getLoyaltTotalTime().get(name);
-		
-	}
-
-	public Map<String, Long> getTimeComparison() {
-		return timeComparison;
-	}
-
-	public Map<String, Integer> getLoyaltTime() {
-		return loyaltTime;
-	}
-
-
-	public Map<String, Integer> getLoyaltyPoints() {
-		return loyaltyPoints;
-	}
-
-
-
 	public int getCycleNumber() {
 		return cycleNumber;
 	}
@@ -316,29 +363,31 @@ debug("hmm checkconfig");
 		return increment;
 	}
 
-	public Map<String, Integer> getLoyaltTotalTime() {
-		return loyaltTotalTime;
-	}
-
+	
 	
 	public int getUpdateTimer() {
 		return updateTimer;
 	}
 	
-public void debug(String txt){
-		
-		
+	public void debug(String txt){
+			
 		if(debug == 1){
 			System.out.println(txt);
 		}
-		
-		
+			
 	}
 
 public int getSaveTimer() {
 	return SaveTimer;
 }
 
-	
 
+public void insertUser(LPUser user){
+	users.put(user.getName(), user);
+	
+}
+
+public Map<String, LPUser> getUsers() {
+	return users;
+}
 }

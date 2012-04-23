@@ -16,26 +16,32 @@ public class LCListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-	public void Velociraptor(final PlayerJoinEvent event) { 		
+	public void Velociraptor(final PlayerJoinEvent event) { 	
 		
-		plugin.debug("PLayer kom ind:" + plugin.getLoyaltTime().get(event.getPlayer().getName())+ " Starttid:"+  plugin.getTimeComparison().get(event.getPlayer().getName()));
+		
+		// plugin.debug("PLayer kom ind:" + user.getTime() + " Starttid:" + user.getTimeComparison());
 		plugin.kickStart(event.getPlayer().getName());
-		plugin.debug("PLayer kom ind: Starttid:"+ plugin.getTimeComparison().get(event.getPlayer().getName()));
+		LPUser user = plugin.getUsers().get(event.getPlayer().getName());
+		plugin.debug("PLayer kom ind:" + user.getTime() + " Starttid:" + user.getTimeComparison());
 	}
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onPlayerLogout(PlayerQuitEvent event) {
-		plugin.debug("player logout"+ plugin.getLoyaltTime().get(event.getPlayer().getName()));
+		LPUser user = plugin.getUsers().get(event.getPlayer().getName());
+		plugin.debug("player logout"+ user.getTime());
 		Long now = new Date().getTime();
-		String m = event.getPlayer().getName();
-		if ((now - plugin.getTimeComparison().get(m)) >= (plugin.getCycleNumber()*1000)) { // cycleNumber amount of seconds has passed
-			plugin.getLoyaltyPoints().put(m, plugin.getLoyaltyPoints().get(m) + plugin.getIncrement());
-			plugin.getTimeComparison().put(m, now);
-			plugin.getLoyaltTime().put(m, 0);		
+		
+		if ((now - user.getTimeComparison()) >= (plugin.getCycleNumber()*1000)) { // cycleNumber amount of seconds has passed
+			user.setPoint(user.getPoint() + plugin.getIncrement());
+			user.setTimeComparison(now);
+			user.setTime(0);
+					
 	}else{
-		plugin.getLoyaltTime().put(m, (plugin.getLoyaltTime().get(m)+ (int) ((now - plugin.getTimeComparison().get(m))/1000) ));	
+		user.setTime(user.getTime() + (int) ((now - user.getTimeComparison())/1000));
+			
 	}
-		plugin.getLoyaltTotalTime().put(m, (plugin.getLoyaltTotalTime().get(m)+ (int) ((now - plugin.getTimeComparison().get(m))/1000) ));
-		plugin.getTimeComparison().put(m, (long) 0);
+	
+		user.setTotalTime(user.getTotalTime() + (int) ((now-user.getTimeComparison())/1000));
+		user.setTimeComparison(0);
 	
 	}
 }

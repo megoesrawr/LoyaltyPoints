@@ -1,9 +1,7 @@
 package com.github.franzmedia.LoyaltyPoints;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -25,7 +23,7 @@ public class LPCommand implements CommandExecutor {
 		if (args.length == 0) {
 			if (sender instanceof Player){
 				if(sender.hasPermission("loyaltypoints.check.self")) {
-					sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(playerName))));
+					sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.getUsers().get(playerName).getPoint())));
 				}else{
 					plugin.debug("tesxt else");
 				}
@@ -38,11 +36,21 @@ public class LPCommand implements CommandExecutor {
 			
 			if(args[0].equalsIgnoreCase("add")){
 				
-				if(sender instanceof Player && sender.hasPermission("loyaltypoints.add")){
+				if(sender instanceof Player){
+					
+					if(sender.hasPermission("loyaltypoints.add")){
+				
 					add(sender,args);
-				}else{
-					add(sender,args);	
-				}
+					}else{
+				
+					
+					sender.sendMessage(plugin.pluginTag + ChatColor.RED	+" You dont have access to this command");
+					}
+					
+					}else{
+						add(sender, args);
+					}
+				
 
 				
 			
@@ -92,11 +100,11 @@ public class LPCommand implements CommandExecutor {
 					Player trick = Bukkit.getPlayer(args[0]);
 					if (trick != null) {
 						String other1 = trick.getName();
-						sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", other1).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(other1))));
+						sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", other1).replaceAll("%POINTS%",String.valueOf(plugin.getUsers().get(other1).getPoint())));
 				
 					} else{
-						if (plugin.getLoyaltyPoints().containsKey(args[0])) {
-							sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", args[0]).replaceAll("%POINTS%",String.valueOf(plugin.getLoyaltyPoints().get(args[0]))));
+						if (plugin.getUsers().containsKey(args[0])) {
+							sender.sendMessage(plugin.checkotherMessage.replaceAll("%PLAYERNAME%", args[0]).replaceAll("%POINTS%",String.valueOf(plugin.getUsers().get(args[0]).getPoint())));
 			
 						} else {
 							sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + " Player not found.");
@@ -120,10 +128,10 @@ public class LPCommand implements CommandExecutor {
 		
 	
 	private void playtime(CommandSender sender, String[] args) {
-		plugin.debug(""+plugin.getPlayTime(sender.getName()));
-		String daten = plugin.getNiceNumber(plugin.getPlayTime(sender.getName()));
+		plugin.debug(""+plugin.getUsers().get(sender.getName()).getTotalTime());
+		String daten = plugin.getNiceNumber(plugin.getUsers().get(sender.getName()).getTotalTime());
 		
-		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + "You have been online for "+ daten );
+		sender.sendMessage(plugin.colorize(plugin.pluginTag + "&3 You have been online for &b"+ daten ));
 	
 		
 	}
@@ -131,22 +139,20 @@ public class LPCommand implements CommandExecutor {
 	private void next(CommandSender sender) {
 		plugin.debug(""+plugin.getTimeLeft(sender.getName()));
 		String daten = plugin.getNiceNumber(plugin.getTimeLeft(sender.getName()));
-		
-		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + "There are around "+ daten+ " until next payout" );
+		sender.sendMessage(plugin.colorize(plugin.pluginTag +"&3 There are around &b"+ daten+ "&3 until next payout"));
 		
 	}
 
 	
 private void add(CommandSender sender, String[] args){
-	int beforepoint = plugin.getLoyaltyPoints().get(args[1]);
+	int beforepoint = plugin.getUsers().get(args[1]).getPoint();
 	int addPoints = Integer.parseInt(args[2]);
 	try{	
 		String player = args[1];
 		int newpoints = beforepoint+addPoints;
 		plugin.debug("bef:"+beforepoint+" add:"+addPoints+ " newP: "+newpoints);
-		
-		plugin.getLoyaltyPoints().put(player, newpoints);
-		sender.sendMessage("THERE ARE NOW added "+Integer.parseInt(args[2]) + " points to "+args[1]);
+		plugin.getUsers().get(player).setPoint(newpoints);
+		sender.sendMessage(plugin.colorize(plugin.pluginTag +"&3 there have been added &b"+Integer.parseInt(args[2]) + "&3 points to &b"+args[1]));
 	
 	
 	}catch(Exception exception){
@@ -161,15 +167,15 @@ private void add(CommandSender sender, String[] args){
 private void reload(CommandSender sender) {
 	plugin.onDisable();
 	plugin.onEnable();
-	sender.sendMessage(plugin.pluginTag + ChatColor.WHITE
-			+ " reloaded points data & configuration.");
+	sender.sendMessage(plugin.colorize(plugin.pluginTag  
+			+ " &3reloaded points data & configuration."));
 	
 	}
 
 private void version(CommandSender sender) {
 	
 
-		sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + " version " + plugin.getDescription().getVersion());
+		sender.sendMessage(plugin.colorize(plugin.pluginTag+ "&3 version &b" + plugin.getDescription().getVersion()));
 
 }
 
@@ -177,18 +183,18 @@ private void set(CommandSender sender, String[] args) {
 	
 	
 	if (args.length != 3) {
-		sender.sendMessage(ChatColor.RED  + "/lp set [username] [amount]");
-	}else 	if(!plugin.getLoyaltyPoints().containsKey(args[1])) {
-		sender.sendMessage(ChatColor.RED  + "Player not found.");
+		sender.sendMessage(plugin.colorize(plugin.pluginTag + " &3/lp set &b[username] [amount]"));
+	}else 	if(!plugin.getUsers().containsKey(args[1])) {
+		sender.sendMessage(plugin.colorize(plugin.pluginTag + "&3 Player not found."));
 		
 	}else{
-		String setPlayer = args[1];
+		
 		try {
 			int amount = Integer.parseInt(args[2]);
-			plugin.getLoyaltyPoints().put(setPlayer, amount);
-			sender.sendMessage(plugin.pluginTag + ChatColor.WHITE + setPlayer+"s Loyalty Points was changed to "+ amount);
+			plugin.getUsers().get(args[1]).setPoint(amount);
+			sender.sendMessage(plugin.colorize(plugin.pluginTag + "&3" + args[1]+"'s&b Loyalty Points was changed to &3"+ amount));
 		} catch (NumberFormatException e) {
-			sender.sendMessage(ChatColor.RED + "Number expected after /lp delete [username]");
+			sender.sendMessage(plugin.colorize(plugin.pluginTag + "&rNumber expected after &b/lp set [username]"));
 		}
 	}
 	
@@ -204,57 +210,81 @@ private void top(CommandSender sender,String[] args) {
 		}
 	}
 
-	List<User> users = new ArrayList<User>();
-	Iterator<String> it = plugin.getLoyaltyPoints().keySet().iterator();
-	while(it.hasNext()) {
-		String player = it.next();
-		users.add(new User(player, plugin.getLoyaltyPoints().get(player)));
-	 }
+	
+	
+	
+	@SuppressWarnings("unchecked")
+	List<LPUser> users = (List<LPUser>) plugin.getUsers();
+	
+
 
 	if (users.isEmpty()) {
 		sender.sendMessage(plugin.pluginTag + ChatColor.RED + " No players in record.");
 	}
-
+	
 	Collections.sort(users, new PointsComparator());
 
+
 	if (maxTop > users.size()) { maxTop = users.size(); 	}
-	sender.sendMessage(ChatColor.DARK_AQUA + "---------" 	+ ChatColor.AQUA + " LoyaltyPoints Top Players " + ChatColor.DARK_AQUA + "---------");
+	sender.sendMessage(ChatColor.DARK_AQUA + "---------" 	+ ChatColor.GOLD + " LoyaltyPoints Top Players " + ChatColor.DARK_AQUA + "---------");
 	for (int a = 0; a < maxTop; a++) {
-				sender.sendMessage(ChatColor.GREEN + String.valueOf(a+1) + ". "
-				+ ChatColor.DARK_AQUA + users.get(a).name + " - "
-				+ ChatColor.BLUE + users.get(a).points + " points");
+				sender.sendMessage(ChatColor.GOLD + String.valueOf(a+1) + ". "
+				+ ChatColor.AQUA + users.get(a).getName() + " - "
+				+ ChatColor.DARK_AQUA + users.get(a).getPoint() + " points");
 	}
 	
 	
 	}
 
 private void help(CommandSender sender){
-	sender.sendMessage(ChatColor.DARK_AQUA + "---------" + ChatColor.AQUA + " LoyaltyPoints Help " + ChatColor.DARK_AQUA + "---------");
-	sender.sendMessage(ChatColor.AQUA + "/loyaltypoints [/lp] "	+ ChatColor.GREEN + " - Checks your Loyalty Points");
-	sender.sendMessage(ChatColor.AQUA + "/lp [username]" + ChatColor.GREEN	+ "- checks the specified player's Loyalty Points");
-	sender.sendMessage(ChatColor.AQUA + "/lp top (amount)" + ChatColor.GREEN + " - shows the top 10 players");
+	sender.sendMessage(ChatColor.DARK_AQUA + "--------- "+ChatColor.GOLD + "LoyaltyPoints Help "+ChatColor.DARK_AQUA+"---------");
+	
+	ChatColor chatColor = ChatColor.GOLD;
+	ChatColor chatColor2 = ChatColor.AQUA;
+	
+	if(sender.hasPermission("loyaltypoints.check.self")){
+		sender.sendMessage( chatColor + " /loyaltypoints [/lp]"+ chatColor2+ "- Checks your Loyalty Points");		
+	}
+	if(sender.hasPermission("loyaltypoints.check.other")){
+	sender.sendMessage(chatColor + "/lp [username]" + chatColor2	+ "- checks the specified player's Loyalty Points");
+	}
+	if(sender.hasPermission("loyaltypoints.next")){
+		sender.sendMessage(chatColor + "/lp next " + chatColor2 + "- shows time to next payout");
+	}
+	if(sender.hasPermission("loyaltypoints.help")){
+		sender.sendMessage(chatColor + "/lp help " + chatColor2 + " - shows you this menu for help");
+	}
+	if(sender.hasPermission("loyaltypoints.top")){
+		sender.sendMessage(chatColor + "/lp top (amount)" + chatColor2 + " - shows the top 10 players");	
+	}
+	if(sender.hasPermission("loyaltypoints.version")){
+		sender.sendMessage(chatColor + "/lp version "+chatColor2 + "- shows the version of LP");
+	}
+	if(sender.hasPermission("loyaltypoints.reload")){
+		sender.sendMessage(chatColor + "/lp reload "+chatColor2 + "- reloads LP");
+	}
+	if(sender.hasPermission("loyaltypoints.set")){
+		sender.sendMessage(chatColor + "/lp set [username] [amount] "+chatColor2 + "- sets the username to amount LP.");
+	}
+	if(sender.hasPermission("loyaltypoints.playtime")){
+		sender.sendMessage(chatColor + "/lp playtime "+chatColor2 + "- shows your playtime");
+	}
+	if(sender.hasPermission("loyaltypoints.add")){
+		sender.sendMessage(chatColor + "/lp add [username] (amont) "+chatColor2 + "- adds amount to username");
+	}
 	
 	sender.sendMessage(ChatColor.DARK_AQUA + "---------"
-			+ ChatColor.AQUA + " LoyaltyPoints Help "
+			+ ChatColor.GOLD + " LoyaltyPoints Help "
 			+ ChatColor.DARK_AQUA + "---------");
 	
 }
 
-class PointsComparator implements Comparator<User> {
-	public int compare(User a, User b) {
-		return (b.points - a.points);
+class PointsComparator implements Comparator<LPUser> {
+	public int compare(LPUser a, LPUser b) {
+		return (b.getPoint() - a.getPoint());
 	}
 }
 
-class User {
-	private String name;
-	private int points;
-
-	public User(String name, int points) {
-		this.name = name;
-		this.points = points;
-	}
-}
 }
 
 

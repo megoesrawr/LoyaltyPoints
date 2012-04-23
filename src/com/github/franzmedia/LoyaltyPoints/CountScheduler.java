@@ -27,29 +27,33 @@ public class CountScheduler implements Runnable {
 		// for every player saves the time to the 
 		for (Player players : plugin.getServer().getOnlinePlayers()) {
 			String player = players.getName();
-			
+			LPUser user = plugin.getUsers().get(player);
 			rest =  plugin.getTimeLeft(player);
-			plugin.debug("LOYALTY TIME"+plugin.getLoyaltTime().get(player)+"rest:"+rest);
+			
+			plugin.debug("LOYALTY TIME"+user.getTime()+"rest:"+rest);
 			if (rest <= 0){ // cycleNumber amount of seconds has passed
+				user.setPoint(user.getPoint()+plugin.getIncrement());
 				
-				plugin.getLoyaltyPoints().put(player, plugin.getLoyaltyPoints().get(player) + plugin.getIncrement());
 /* DEBUG */		plugin.debug(player+ "REST:"+rest);
-/* DEBUG */		plugin.debug(player+": loyalt before: "+ plugin.getLoyaltTime().get(player));
-				plugin.getLoyaltTime().put(player, 0-rest);
-/* DEBUG */		plugin.debug(player+":loyalt after: "+ plugin.getLoyaltTime().get(player));		
+/* DEBUG */		plugin.debug(player+": Time before: "+ user.getTime());
+				user.setTime(0-rest);				
+/* DEBUG */		plugin.debug(player+":Time after: "+ user.getTime());		
 			}else{
-				plugin.getLoyaltTime().put(player, (int) (plugin.getLoyaltTime().get(player)+ ((now-plugin.getTimeComparison().get(player))/1000)));	
+				user.setTime((int) (user.getTime()+((now-user.getTimeComparison())/1000)));
+					
 			}
-			plugin.getLoyaltTotalTime().put(player, (plugin.getLoyaltTotalTime().get(player)+ (int) ((now - plugin.getTimeComparison().get(player))/1000) ));
-			plugin.debug("running now:"+ now/1000 + " timecomparison: " + plugin.getTimeComparison().get(player)/1000 +"DIF: "+(now - plugin.getTimeComparison().get(player))/1000 + " cycle:" + cycle );
-			plugin.getTimeComparison().put(player, now);
+			user.setTotalTime(user.getTotalTime()+ (int) ((now -user.getTimeComparison())/1000));
+			
+			plugin.debug("running now:"+ now/1000 + " timecomparison: " + user.getTimeComparison()/1000 +"DIF: "+(now - user.getTimeComparison())/1000 + " cycle:" + cycle );
+			user.setTimeComparison(now);
+			
 			
 		}
 		
 		
 
 		// saves the Scores to the file
-		if(now - updateTimer >= (plugin.getUpdateTimer()*1000)){
+		if(now - updateTimer >= (plugin.getUpdateTimer()*20000)){
 			LPFileManager.save();
 			updateTimer = now;
 		}
