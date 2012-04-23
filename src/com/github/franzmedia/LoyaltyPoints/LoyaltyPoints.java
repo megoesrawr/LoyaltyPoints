@@ -21,7 +21,7 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0;
 	private int SaveTimer = 3600; // 1 hour
-	private int debug = 1;
+	private int debug = 0;
 	private int check = -10;
 	private String checkString = "";
 	private Map<String, LPUser> users = new HashMap<String, LPUser>();
