@@ -1,7 +1,9 @@
 package com.github.franzmedia.LoyaltyPoints;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -176,7 +178,18 @@ private void version(CommandSender sender) {
 	
 
 		sender.sendMessage(plugin.colorize(plugin.pluginTag+ "&3 version &b" + plugin.getDescription().getVersion()));
-
+		
+		
+		if(sender.isOp()){
+			plugin.getNewestVersion();
+			
+			if(!plugin.upToDate()){
+				sender.sendMessage(plugin.colorize(plugin.pluginTag + "&3 there are a newer version of LoyaltyPoints "+ plugin.newVersion));
+				
+			}
+			
+			
+		}
 }
 
 private void set(CommandSender sender, String[] args) {
@@ -211,10 +224,14 @@ private void top(CommandSender sender,String[] args) {
 	}
 
 	
+	 List<LPUser> users = new ArrayList<LPUser>();
+	 Iterator<String> it = plugin.getUsers().keySet().iterator();
+	 	  	
+	 while(it.hasNext()) {
+	 String player = it.next();
+	users.add(plugin.getUsers().get(player));
+	 }
 	
-	
-	@SuppressWarnings("unchecked")
-	List<LPUser> users = (List<LPUser>) plugin.getUsers();
 	
 
 
@@ -253,6 +270,7 @@ private void help(CommandSender sender){
 	}
 	if(sender.hasPermission("loyaltypoints.help")){
 		sender.sendMessage(chatColor + "/lp help " + chatColor2 + " - shows you this menu for help");
+		
 	}
 	if(sender.hasPermission("loyaltypoints.top")){
 		sender.sendMessage(chatColor + "/lp top (amount)" + chatColor2 + " - shows the top 10 players");	

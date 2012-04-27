@@ -1,9 +1,14 @@
 package com.github.franzmedia.LoyaltyPoints;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +28,8 @@ public class LoyaltyPoints extends JavaPlugin {
 	private int SaveTimer = 3600; // 1 hour
 	private int debug = 0;
 	private int check = -10;
+	private int version, newestVersion;
+	public String newVersion;
 	private String checkString = "";
 	private Map<String, LPUser> users = new HashMap<String, LPUser>();
 
@@ -66,6 +73,7 @@ public class LoyaltyPoints extends JavaPlugin {
 		mapFileConfig = YamlConfiguration.loadConfiguration(mapFile);
 		loadPointsData();
 		checkConfig();
+		startUpdateCheck();
 		loadVariables();
 		getCommand("lp").setExecutor(new LPCommand(this));
 		this.getServer().getPluginManager().registerEvents(new LCListener(this), this);
@@ -376,6 +384,41 @@ debug("hmm checkconfig");
 		}
 			
 	}
+	
+	
+	public void startUpdateCheck() {
+		version = Integer.parseInt(getDescription().getVersion().replaceAll("\\.", ""));
+		newestVersion = version;
+			getNewestVersion();	
+			
+			if(!upToDate()){
+				this.logger.info(colorize(pluginTag) +" is not up to date, the new version:" + newVersion);
+			}else{
+				this.logger.info(colorize(pluginTag) +" the plugin is up to date...");
+			}
+	}
+	
+	
+	
+	public void getNewestVersion(){
+		
+		try {
+			// open HTTP connection
+			URL url = new URL("https://raw.github.com/franzmedia/LoyaltyPoints/master/version.txt");
+			URLConnection connection = url.openConnection();
+			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			newVersion = in.readLine();
+			newestVersion = Integer.parseInt(newVersion.replaceAll("\\.", ""));
+			
+			in.close();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
 
 public int getSaveTimer() {
 	return SaveTimer;
@@ -389,5 +432,16 @@ public void insertUser(LPUser user){
 
 public Map<String, LPUser> getUsers() {
 	return users;
+}
+
+public boolean upToDate() {
+boolean returnstr = false;
+	if(newestVersion > version){
+		returnstr = false;
+	}else{
+		returnstr = true;
+	}
+	
+	return returnstr;
 }
 }
