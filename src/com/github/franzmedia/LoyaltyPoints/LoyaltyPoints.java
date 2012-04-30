@@ -1,5 +1,5 @@
 package com.github.franzmedia.LoyaltyPoints;
-
+import lib.PatPeter.SQLibrary.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,6 +9,8 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,15 +25,16 @@ import org.bukkit.plugin.java.JavaPlugin;
 /** @author Kasper Franz - HD Solutions */
 public class LoyaltyPoints extends JavaPlugin {
 	public final Logger logger = Logger.getLogger("Minecraft");
-
+	public SQLite sqlite;
 	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0;
 	private int SaveTimer = 3600; // 1 hour
-	private int debug = 0;
+	private int debug = 1;
 	private int check = -10;
 	private int version, newestVersion;
 	public String newVersion;
 	private String checkString = "";
 	private Map<String, LPUser> users = new HashMap<String, LPUser>();
+	
 
 	public FileConfiguration config;
 	public File mapFile;
@@ -59,10 +62,11 @@ public class LoyaltyPoints extends JavaPlugin {
 	 * amount of points (reaches a point milestone) Receive item rewards on
 	 * specified point milestones
 	 */
-
 	public void onDisable() {
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new CountScheduler(this),(long) 0);
 		LPFileManager.save();
+		save();
+		sqlite.close();
 		users.clear();
 		// milestones.clear();
 		info(this.getDescription(), "disabled");
@@ -71,17 +75,22 @@ public class LoyaltyPoints extends JavaPlugin {
 	public void onEnable() {
 		mapFile = new File(this.getDataFolder(), "points.yml");
 		mapFileConfig = YamlConfiguration.loadConfiguration(mapFile);
+		sqlite = new SQLite(this.getLogger(), pluginTag, "LP", this.getDataFolder().toString());
+		sqlite.open();
+		
 		loadPointsData();
 		checkConfig();
 		startUpdateCheck();
 		loadVariables();
 		getCommand("lp").setExecutor(new LPCommand(this));
 		this.getServer().getPluginManager().registerEvents(new LCListener(this), this);
-
-		/*
+		 
+		 
+		 
+		 /*
 		 * if (!setupEconomy()) {
 		 * this.logger.severe("[LoyaltyPoints] Vault dependency not found!");
-		 * this
+		 * th
 		 * .logger.severe("[LoyaltyPoints] Milestones paying feature disabled."
 		 * ); economyPresent = false; }
 		 */
@@ -90,8 +99,37 @@ public class LoyaltyPoints extends JavaPlugin {
 	}
 
 	public void loadPointsData() {
-		for (String s : this.mapFileConfig.getKeys(false)) {
-			kickStart(s);
+		
+		if(!sqlite.checkTable("users")){
+			sqlite.createTable("CREATE TABLE users (username varchar(15) not null, point int(15), time int(25), totaltime int(25))");
+			sqlite.query("INSERT INTO users values('kasperFranz', '22', '22', '0')");
+			System.out.println(sqlite.lastUpdate);
+			sqlite.query("INSERT INTO users values('Franz488', '022', '50', '022')");
+			System.out.println(sqlite.lastUpdate);
+			sqlite.query("INSERT INTO users values('famfranz5', '1', '2', '220')");
+			System.out.println(sqlite.lastUpdate);
+		}else{
+			
+		Long now = new Date().getTime();	
+	
+		ResultSet rs = sqlite.query("SELECT count(username) as c FROM users");
+		try {
+			rs.next();
+			int usersCount = rs.getInt("c");
+			System.out.println(usersCount);
+			 rs = sqlite.query("SELECT * FROM users");
+			 for(int i = 0; i < usersCount; i++){
+				 rs.next();
+					System.out.println("user insert" + rs.getString("username"));
+					users.put(rs.getString("username"), new LPUser(rs.getString("username"), rs.getInt("point"), rs.getInt("time"), rs.getInt("totaltime"), now));
+				}
+			
+		} catch (SQLException e1) {
+System.out.println("error with loading users");
+		}
+
+		
+						
 			
 		}
 	}
@@ -193,15 +231,15 @@ public class LoyaltyPoints extends JavaPlugin {
 		
 		if (!users.containsKey(player) && !LPFileManager.load(player)) { //if player don't excists 
 			// we put starting points, TotalTime, and time since last point
-			LPUser user = new LPUser(player, startingPoints, 0, 0, new Date().getTime());
-			users.put(player, user);
+			
+			users.put(player, new LPUser(player, startingPoints, 0, 0, new Date().getTime()));
 			debug("NEW USER INSERTED"+player);
 		}
 		
 		}
 		
 		debug(users.get(player).getTime()+"");
-		users.get(player).setTimeComparison(new Date().getTime());
+		
 		
 		
 	}
@@ -419,6 +457,7 @@ debug("hmm checkconfig");
 	}
 	
 	
+	
 
 public int getSaveTimer() {
 	return SaveTimer;
@@ -443,5 +482,39 @@ boolean returnstr = false;
 	}
 	
 	return returnstr;
+}
+
+public void save() {
+
+for(LPUser user : users.values()){
+	
+		
+		System.out.println(user.getName());
+		
+		try {
+			String sql1 = "SELECT * FROM 'users' WHERE 'username'=\""+user.getName()+"\"";
+			debug(sql1);
+			ResultSet rs = sqlite.query(sql1);
+			debug("before rs.next");
+			if(rs.next()){
+				debug("doing something in a row");
+				String sql = "UPDATE 'users' SET 'point' = \""+user.getPoint() + "\", 'time' = \""+user.getTime() + "\", 'totaltime' = \""+ user.getTotalTime() + "\" WHERE 'username' = \""+user.getName()+"\"";
+				debug("sql kode for "+ user.getName() + "  " +sql);
+				rs = sqlite.query(sql);
+				
+			}else{
+				rs = sqlite.query("INSERT INTO users VALUES ("+user.getName()+ ","+user.getPoint()+"," +user.getTime() +"," + user.getTotalTime()+")");
+			}
+			
+			
+		} catch (SQLException e) {
+			// 
+			e.printStackTrace();
+			debug(e.getSQLState());
+		}
+		
+		
+	}
+	
 }
 }

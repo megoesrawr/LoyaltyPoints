@@ -54,7 +54,7 @@ public class CountScheduler implements Runnable {
 
 		// saves the Scores to the file
 		if(now - updateTimer >= (plugin.getUpdateTimer()*20000)){
-			LPFileManager.save();
+			plugin.save();
 			updateTimer = now;
 		}
 		
