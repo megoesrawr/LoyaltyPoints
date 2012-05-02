@@ -113,12 +113,15 @@ public class SQLite extends Database {
 					
 			    case INSERT:
 			    	statement.executeUpdate(query);
+			    	result = null;
 			    	break;
 			    case UPDATE:
 			    	 statement.executeUpdate(query);
+			    	 result = null;
 			    	break;
 			    case DELETE:
 			    	 statement.executeUpdate(query);
+			    	 result = null;
 			    	break;
 			    case CREATE:
 			    case ALTER:
