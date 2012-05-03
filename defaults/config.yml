@@ -39,5 +39,19 @@ check-otherplayer-message: '%TAG% &3%PLAYERNAME% has &b%POINTS% &3Loyalty Points
 
 # 1 if you want to use file based,
 # 2 if you want to use sqLite.
+# 3 if you want to use mysql.
 # default (2)
 point-type: 2
+
+
+
+#################################
+# Only options if you use mysql #
+#################################
+
+mysql-host:
+mysql-port:       
+# mysqls default port is 3306
+mysql-user:
+mysql-pass:
+mysql-database:
