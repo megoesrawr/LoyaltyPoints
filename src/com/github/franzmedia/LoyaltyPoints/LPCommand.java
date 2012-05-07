@@ -22,7 +22,7 @@ public class LPCommand implements CommandExecutor {
 
 	public boolean onCommand(CommandSender sender, Command cmd, String zhf, String[] args) {
 		String playerName = sender.getName();
-		if (args.length == 0) {
+		 if (args.length == 0) {
 			if (sender instanceof Player){
 				if(sender.hasPermission("loyaltypoints.check.self")) {
 					sender.sendMessage(plugin.selfcheckMessage.replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%",String.valueOf(plugin.getUsers().get(playerName).getPoint())));
@@ -35,8 +35,14 @@ public class LPCommand implements CommandExecutor {
 				 
 			}
 		}else{
-			
-			if(args[0].equalsIgnoreCase("add")){
+			if(args[0].equalsIgnoreCase("toSQL")){
+				if(sender instanceof Player) {
+				}else{
+					sender.sendMessage(plugin.pluginTag + " We are now moving your file browsers to SQLite (this may take a while, please wait!" );
+					plugin.transformToSQLite();
+					
+				}
+			}else if(args[0].equalsIgnoreCase("add")){
 				
 				if(sender instanceof Player){
 					

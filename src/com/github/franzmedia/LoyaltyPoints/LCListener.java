@@ -32,7 +32,6 @@ public class LCListener implements Listener {
 		
 		if ((now - user.getTimeComparison()) >= (plugin.getCycleNumber()*1000)) { // cycleNumber amount of seconds has passed
 			user.setPoint(user.getPoint() + plugin.getIncrement());
-			user.setTimeComparison(now);
 			user.setTime(0);
 					
 	}else{
