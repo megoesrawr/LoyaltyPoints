@@ -128,6 +128,7 @@ debug("error with loading users");
 		}
 		
 		}else if(pointType == 3){
+			
 			if(!mysql.checkTable("users")){
 				// LOAD DATA FROM FILE TO SQLite!!!!
 			}else{
@@ -256,7 +257,7 @@ debug("error with loading users");
 			String user = null;
 			String pass = null;
 			String database = null;
-			String miss = null;
+			String miss = "";
 			checkString = checkStringVariable("mysql-host");
 			if(!checkString.isEmpty()){
 			host = checkString;
@@ -285,6 +286,7 @@ debug("error with loading users");
 			
 			if(miss.length() < 3){
 			mysql = new MySQL(this.getLogger(), pluginTag, host, port, database, user, pass);
+			debug("WE DID THE MYSQL"+ mysql.checkConnection());
 			}else{
 			logger.warning(pluginTag + "We have a error with the following mysql things:" + miss);	
 			}
