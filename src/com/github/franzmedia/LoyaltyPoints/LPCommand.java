@@ -39,7 +39,7 @@ public class LPCommand implements CommandExecutor {
 				if(sender instanceof Player) {
 				}else{
 					sender.sendMessage(plugin.pluginTag + " We are now moving your file browsers to SQLite (this may take a while, please wait!" );
-					plugin.transformToSQLite();
+					plugin.transformToSQL();
 					
 				}
 			}else if(args[0].equalsIgnoreCase("add")){
@@ -89,7 +89,7 @@ public class LPCommand implements CommandExecutor {
 					sender.sendMessage(plugin.consoleCheck);
 					
 				}
-			}else if(args[0].equalsIgnoreCase("playtime") && sender.hasPermission("loyaltypoints.playtime")){ 
+			}else if((args[0].equalsIgnoreCase("playtime") || args[0].equalsIgnoreCase("time")) && sender.hasPermission("loyaltypoints.playtime")){ 
 				if (sender instanceof Player){
 					/*	 PlayTime */
 								

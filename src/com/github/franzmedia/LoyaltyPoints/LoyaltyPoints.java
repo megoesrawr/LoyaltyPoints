@@ -29,14 +29,18 @@ public class LoyaltyPoints extends JavaPlugin {
 	private MySQL mysql;
 	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0;
 	private int SaveTimer = 3600; // 1 hour
-	private int debug = 1;
+	private int debug = 0;
 	private int check = -10;
 	private int version, newestVersion;
 	private int pointType = 2;
 	public String newVersion;
 	private String checkString = "";
 	private Map<String, LPUser> users = new HashMap<String, LPUser>();
-	
+	private String mysql_host = null;
+	private String mysql_port = "3306";
+	private String mysql_user = null;
+	private String mysql_pass = null;
+	private String mysql_database = null;
 
 	public FileConfiguration config;
 	public File mapFile;
@@ -71,7 +75,12 @@ public class LoyaltyPoints extends JavaPlugin {
 			LPFileManager.save();
 		}else{
 			save();
-			sqlite.close();	
+			if(pointType == 2){
+				sqlite.close();
+			}else{
+				mysql.close();
+			}
+			
 		}
 		
 		users.clear();
@@ -81,7 +90,7 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	public void onEnable() {
 		checkConfig();
-		// startUpdateCheck(); HUSK OG RET TILBAGE!!!!!
+		startUpdateCheck(); 
 		loadVariables();
 		loadPointsData();
 		getCommand("lp").setExecutor(new LPCommand(this));
@@ -101,21 +110,31 @@ public class LoyaltyPoints extends JavaPlugin {
 	}
 
 	public void loadPointsData() {
-		if(pointType == 2){
+		if(pointType == 2 || pointType == 3){
 sqlite = new SQLite(this.getLogger(), pluginTag, "lp", this.getDataFolder().toString());
-		if(!sqlite.checkTable("users")){
-			// LOAD DATA FROM FILE TO SQLite!!!!
+		
+
+if(!sqlite.checkTable("users")){
+			sqlite.createTable("CREATE TABLE users" +
+					"( 	username varchar(16) NOT NULL," +
+					"	point	 int(16)," +
+					"	totaltime int(25)," +
+					"	time		int(10) )"  );
+
 		}else{
-			
-		Long now = new Date().getTime();	
-	
-		ResultSet rs = sqlite.query("SELECT count(username) as c FROM users");
+					
+		Long now = new Date().getTime();
+		ResultSet rs;
+		String sql = "SELECT count(username) as c FROM users";
+		if(pointType == 2){  rs = sqlite.query(sql); }else{ rs = mysql.query(sql); }
+		
 		try {
 			rs.next();
 			int usersCount = rs.getInt("c");
 			rs.close();
 			debug(usersCount+"");
-			 rs = sqlite.query("SELECT * FROM users");
+			 String sql1 = "SELECT * FROM users";
+				if(pointType == 2){  rs = sqlite.query(sql1); }else{ rs = mysql.query(sql1); }
 			 for(int i = 0; i < usersCount; i++){
 				 rs.next();
 					debug("user insert" + rs.getString("username"));
@@ -141,7 +160,7 @@ debug("error with loading users");
 				int usersCount = rs.getInt("c");
 				rs.close();
 				debug(usersCount+"");
-				 rs = sqlite.query("SELECT * FROM users");
+				 rs = mysql.query("SELECT * FROM users");
 				 for(int i = 0; i < usersCount; i++){
 					 rs.next();
 						debug("user insert" + rs.getString("username"));
@@ -252,41 +271,37 @@ debug("error with loading users");
 		
 		if(pointType == 3){
 			// if it's mysql
-			String host = null;
-			String port = "3306";
-			String user = null;
-			String pass = null;
-			String database = null;
+			
 			String miss = "";
 			checkString = checkStringVariable("mysql-host");
 			if(!checkString.isEmpty()){
-			host = checkString;
+				mysql_host = checkString;
 			}else{ miss = "host "; }
 			
 			
 			checkString = checkStringVariable("mysql-port");
 			if(!checkString.isEmpty()){
-			port = checkString;
+				mysql_port = checkString;
 			}
 			
 			checkString = checkStringVariable("mysql-user");
 			if(!checkString.isEmpty()){
-			user = checkString;
+				mysql_user = checkString;
 			}else{ miss = miss+"user "; }
 			checkString = checkStringVariable("mysql-pass");
 			if(!checkString.isEmpty()){
-			pass = checkString;
+				mysql_pass = checkString;
 			}else{ miss = miss+"pass "; }
 			
 			checkString = checkStringVariable("mysql-database");
 			if(!checkString.isEmpty()){
-			database = checkString;
+				mysql_database = checkString;
 			}else{ miss = miss+"database "; }
 			
 			
 			if(miss.length() < 3){
-			mysql = new MySQL(this.getLogger(), pluginTag, host, port, database, user, pass);
-			debug("WE DID THE MYSQL"+ mysql.checkConnection());
+			mysql = new MySQL(this.getLogger(), pluginTag, mysql_host, mysql_port, mysql_database, mysql_user, mysql_pass);
+			mysql.open();
 			}else{
 			logger.warning(pluginTag + "We have a error with the following mysql things:" + miss);	
 			}
@@ -527,27 +542,20 @@ debug("hmm checkconfig");
 	}
 	
 	
-	public void transformToSQLite(){
+	public void transformToSQL(){
 		int total = 0;
+		
+		debug("type:"+pointType);
 		debug(!sqlite.checkConnection()+" conn");
-		if(!sqlite.checkConnection()){
-			sqlite = new SQLite(logger, pluginTag, "LP", getDataFolder().toString());
-			
-		
-		
-		}
-		
+		if(pointType == 2){
 		debug("check"+sqlite.checkTable("users"));
-	if(!sqlite.checkTable("users")){
+		if(!sqlite.checkTable("users")){
 		sqlite.createTable("CREATE TABLE users" +
 				"( 	username varchar(16) NOT NULL," +
 				"	point	 int(16)," +
 				"	totaltime int(25)," +
 				"	time		int(10) )"  );
-	
-	}
-		
-		
+
 		mapFileConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "points.yml"));
 		for (String playerName : mapFileConfig.getKeys(false)) {
 			int points = mapFileConfig.getInt(playerName + ".points");
@@ -578,6 +586,54 @@ debug("hmm checkconfig");
 			}
 		users.put(playerName, user);
 		}
+		}
+		
+	}else if(pointType == 3){
+		debug("point type 3:");
+		if(!mysql.checkTable("users")){
+			mysql.createTable("CREATE TABLE users" +
+					"( 	username varchar(16) NOT NULL," +
+					"	point	 int(16)," +
+					"	totaltime int(25)," +
+					"	time		int(10) )"  );
+
+		}	
+	
+	mapFileConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "points.yml"));
+	for (String playerName : mapFileConfig.getKeys(false)) {
+		int points = mapFileConfig.getInt(playerName + ".points");
+		int time = 0;
+		time = mapFileConfig.getInt(playerName + ".time");
+		int totalTime = mapFileConfig.getInt(playerName + ".totalTime");
+		LPUser user = new LPUser(playerName, points, time, totalTime, new Date().getTime());
+		String sql1 = "SELECT count(*) as c FROM  users WHERE username=\""+playerName+"\"";
+		debug(sql1);
+		ResultSet rs = mysql.query(sql1);
+		int c = 0;
+		try {
+			rs.next();
+			c = rs.getInt("c");
+			debug("before rs.next " + c);
+			rs.close();
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+		}
+		
+		if(c == 0){
+		
+			mysql.query("INSERT INTO users VALUES (\""+user.getName()+ "\",\""+user.getPoint()+"\",\"" +user.getTime() +"\",\"" + user.getTotalTime()+"\")");
+			
+		
+		total++;
+		}
+	users.put(playerName, user);
+	}
+	}
+		
+		
+	
+	
 		logger.info(pluginTag + "the transform to sql is done we moved "+ total +  " users");
 	
 		
@@ -592,7 +648,20 @@ debug("hmm checkconfig");
 			URLConnection connection = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			newVersion = in.readLine();
-			newestVersion = Integer.parseInt(newVersion.replaceAll("\\.", ""));
+			debug(newVersion);
+			
+			String NV = newVersion.replaceAll("\\.", "");
+			if(NV.length() > 3){
+				char arr[] = newVersion.toCharArray();
+				NV = "";
+				for(int i = 0; i < 3; i++){
+					NV = NV + arr[i]; 
+				}
+				newestVersion = Integer.parseInt(NV);
+			}else{
+			newestVersion = Integer.parseInt(newVersion);	
+			}
+			
 			
 			in.close();
 		} catch (MalformedURLException e) {
@@ -640,7 +709,8 @@ for(LPUser user : users.values()){
 		try {
 			String sql1 = "SELECT count(*) as c FROM  users WHERE username=\""+user.getName()+"\"";
 			debug(sql1);
-			ResultSet rs = sqlite.query(sql1);
+			ResultSet rs;
+			if(pointType == 2){  rs = sqlite.query(sql1); }else{ rs = mysql.query(sql1); }
 			rs.next();
 			int c = rs.getInt("c");
 			debug("before rs.next " + c);
@@ -648,7 +718,7 @@ for(LPUser user : users.values()){
 			if(c != 0){				
 				String sql = "UPDATE users SET point = \""+user.getPoint() + "\", time = \""+user.getTime() + "\", totaltime = \""+ user.getTotalTime() + "\" WHERE username = \""+user.getName()+"\"";
 				debug("sql kode for "+ user.getName() + "  " +sql);
-				rs = sqlite.query(sql);
+				if(pointType == 2){  rs = sqlite.query(sql); }else{ rs = mysql.query(sql); }
 				
 			}else{
 			
