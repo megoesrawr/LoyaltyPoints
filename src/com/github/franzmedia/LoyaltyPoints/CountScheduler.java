@@ -54,12 +54,16 @@ public class CountScheduler implements Runnable {
 
 		// saves the Scores to the file
 		if(now - updateTimer >= (plugin.getUpdateTimer()*20000)){
-			plugin.save();
 			updateTimer = now;
+			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+
+				   public void run() {
+					   plugin.save();
+					   
+				   }
+				});
+			
 		}
-		
-		
-		// Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new CountScheduler(plugin), (long) plugin.getUpdateTimer());
 	}
 	
 }

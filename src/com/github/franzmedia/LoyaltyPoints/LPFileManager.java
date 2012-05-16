@@ -11,12 +11,12 @@ public class LPFileManager {
 	
 	private static LoyaltyPoints plugin;
 
-	public LPFileManager(LoyaltyPoints isCool) {
-		plugin = isCool;
+	public LPFileManager(LoyaltyPoints pluginet) {
+		plugin = pluginet;
 	}
 
 	public static boolean load(String playerName) {
-		YamlConfiguration yConfig = YamlConfiguration.loadConfiguration(plugin.mapFile);
+		YamlConfiguration yConfig = YamlConfiguration.loadConfiguration(plugin.getMapFile());
 		if (yConfig.contains(playerName + ".points")) { // old guy...
 			int points = yConfig.getInt(playerName + ".points");
 			int time = 0;
@@ -31,7 +31,7 @@ public class LPFileManager {
 	}
 
 	public static void save() {
-		YamlConfiguration yConfig = YamlConfiguration.loadConfiguration(plugin.mapFile);
+		YamlConfiguration yConfig = YamlConfiguration.loadConfiguration(plugin.getMapFile());
 		int i;
 		List<String> userList = new ArrayList<String>(plugin.getUsers().keySet());
 		for (i = 0; i < userList.size(); i++) {
@@ -45,9 +45,9 @@ public class LPFileManager {
 			yConfig.set(playerName + ".time", time);
 			yConfig.set(playerName + ".totalTime", totalTime);
 		}
-		try { // COULDN'T SAVE IT
-			yConfig.save(plugin.mapFile);
-		} catch (IOException e) {
+		try { // Trying to save it!
+			yConfig.save(plugin.getMapFile());
+		} catch (IOException e) { // couldn't
 			e.printStackTrace();
 		}
 	}

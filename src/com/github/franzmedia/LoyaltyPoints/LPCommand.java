@@ -38,15 +38,14 @@ public class LPCommand implements CommandExecutor {
 			if(args[0].equalsIgnoreCase("toSQL")){
 				if(sender instanceof Player) {
 				}else{
-					sender.sendMessage(plugin.pluginTag + " We are now moving your file browsers to SQLite (this may take a while, please wait!" );
+					sender.sendMessage(plugin.pluginTag + " We are now moving your file browsers to SQLite/mysql (this may take a while, please wait!" );
 					plugin.transformToSQL();
 					
 				}
 			}else if(args[0].equalsIgnoreCase("add")){
 				
-				if(sender instanceof Player){
-					
-					if(sender.hasPermission("loyaltypoints.add")){
+			if(sender instanceof Player){
+				if(sender.hasPermission("loyaltypoints.add")){
 				
 					add(sender,args);
 					}else{
@@ -59,9 +58,6 @@ public class LPCommand implements CommandExecutor {
 						add(sender, args);
 					}
 				
-
-				
-			
 			}else if(args[0].equalsIgnoreCase("help")) {
 				/* HELP COMMAND */ 
 				 help(sender);

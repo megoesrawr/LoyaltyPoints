@@ -27,28 +27,19 @@ public class LoyaltyPoints extends JavaPlugin {
 	public final Logger logger = Logger.getLogger("Minecraft");
 	private SQLite sqlite;
 	private MySQL mysql;
-	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0;
-	private int SaveTimer = 3600; // 1 hour
-	private int debug = 0;
-	private int check = -10;
-	private int version, newestVersion;
+	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0, SaveTimer = 3600, check = -10,version, newestVersion;
+	private int debug = 1;
 	private int pointType = 2;
-	public String newVersion;
-	private String checkString = "";
+	public String newVersion, checkString = "";
 	private Map<String, LPUser> users = new HashMap<String, LPUser>();
-	private String mysql_host = null;
-	private String mysql_port = "3306";
-	private String mysql_user = null;
-	private String mysql_pass = null;
-	private String mysql_database = null;
-
-	public FileConfiguration config;
-	public File mapFile;
-	public FileConfiguration mapFileConfig;
-	public LPFileManager lcFM = new LPFileManager(this);
+	/* Mysql */
+	private String mysql_host = null, mysql_port = "3306", mysql_user = null, mysql_pass = null, mysql_database = null;
+	private FileConfiguration config;
+	private File mapFile;
+	private FileConfiguration mapFileConfig;
 	
 	/* Messages  EDITABLE					 */ 
-	public String pluginTag = colorize("&6[LoyaltyPoints]");
+	public String pluginTag = "&6[LoyaltyPoints]";
 	public String consoleCheck = pluginTag+ " Sorry, I dont track consoles.";
 	public String selfcheckMessage =  colorize(pluginTag + " &3You have &b%POINTS% &3Loyalty Points.");
 	public String checkotherMessage = colorize(pluginTag + " &3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.");
@@ -75,28 +66,35 @@ public class LoyaltyPoints extends JavaPlugin {
 			LPFileManager.save();
 		}else{
 			save();
-			if(pointType == 2){
-				sqlite.close();
-			}else{
-				mysql.close();
-			}
+			if(pointType == 2){	sqlite.close();	}else{  mysql.close(); 	}
 			
 		}
 		
 		users.clear();
-		// milestones.clear();
 		info(this.getDescription(), "disabled");
 	}
 
 	public void onEnable() {
 		checkConfig();
-		startUpdateCheck(); 
 		loadVariables();
-		loadPointsData();
-		getCommand("lp").setExecutor(new LPCommand(this));
+		getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+
+			   public void run() {
+				   loadPointsData();
+				   
+			   }
+			});
+		
+		
 		this.getServer().getPluginManager().registerEvents(new LCListener(this), this);
-		 
-		 
+		getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+
+			   public void run() {
+				   startUpdateCheck();
+			   }
+			}); 
+		getCommand("lp").setExecutor(new LPCommand(this));
+		info(getDescription(), "enabled"); 
 		 
 		 /*
 		 * if (!setupEconomy()) {
@@ -105,24 +103,37 @@ public class LoyaltyPoints extends JavaPlugin {
 		 * .logger.severe("[LoyaltyPoints] Milestones paying feature disabled."
 		 * ); economyPresent = false; }
 		 */
-		this.getServer().getScheduler().scheduleAsyncRepeatingTask(this, new CountScheduler(this),(long) 60L, updateTimer);
-		info(this.getDescription(), "enabled");
+		getServer().getScheduler().scheduleAsyncRepeatingTask(this, new CountScheduler(this),(long) updateTimer/20L, updateTimer/20L);
+		
 	}
 
 	public void loadPointsData() {
+		int usersCount = 0;
+	
+		logger.info(pluginTag+" Beginning to load User points.");
 		if(pointType == 2 || pointType == 3){
-sqlite = new SQLite(this.getLogger(), pluginTag, "lp", this.getDataFolder().toString());
-		
-
-if(!sqlite.checkTable("users")){
+			int status = 1;
+			if(pointType == 2){
+			if(!sqlite.checkTable("users")){
+				status = 0;
 			sqlite.createTable("CREATE TABLE users" +
 					"( 	username varchar(16) NOT NULL," +
 					"	point	 int(16)," +
 					"	totaltime int(25)," +
 					"	time		int(10) )"  );
-
-		}else{
-					
+				}
+			}else if(pointType == 3){
+				if(!mysql.checkTable("users")){
+					status = 0;
+			mysql.createTable("CREATE TABLE users" +
+					"( 	username varchar(16) NOT NULL," +
+					"	point	 int(16)," +
+					"	totaltime int(25)," +
+					"	time		int(10) )"  );
+				} 	
+			}
+		
+		if(status == 1){			
 		Long now = new Date().getTime();
 		ResultSet rs;
 		String sql = "SELECT count(username) as c FROM users";
@@ -130,7 +141,7 @@ if(!sqlite.checkTable("users")){
 		
 		try {
 			rs.next();
-			int usersCount = rs.getInt("c");
+			usersCount = rs.getInt("c");
 			rs.close();
 			debug(usersCount+"");
 			 String sql1 = "SELECT * FROM users";
@@ -144,39 +155,23 @@ rs.close();
 		} catch (SQLException e1) {
 debug("error with loading users");
 		}
-		}
 		
-		}else if(pointType == 3){
-			
-			if(!mysql.checkTable("users")){
-				// LOAD DATA FROM FILE TO SQLite!!!!
-			}else{
+		
+		
 				
-			Long now = new Date().getTime();	
-		
-			ResultSet rs = mysql.query("SELECT count(username) as c FROM users");
-			try {
-				rs.next();
-				int usersCount = rs.getInt("c");
-				rs.close();
-				debug(usersCount+"");
-				 rs = mysql.query("SELECT * FROM users");
-				 for(int i = 0; i < usersCount; i++){
-					 rs.next();
-						debug("user insert" + rs.getString("username"));
-						users.put(rs.getString("username"), new LPUser(rs.getString("username"), rs.getInt("point"), rs.getInt("time"), rs.getInt("totaltime"), now));
-					}
-	rs.close();			
-			} catch (SQLException e1) {
-	debug("error with loading users");
-			}
-			}	
-		}else{
+		}else if(pointType == 1){
 			mapFileConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "points.yml"));
 			for (String s : mapFileConfig.getKeys(false)) {
 				kickStartFile(s);
+				usersCount++;
 			}
+		}else{
+			logger.info(pluginTag + " it seems like there are a error on your PointType,  1-3 is a allowed value!");
+		
 		}
+		}
+	
+		logger.info(pluginTag+ " there have been loaded a total of "+ usersCount+" users.");
 		
 	}
 		
@@ -267,9 +262,10 @@ debug("error with loading users");
 		if(check > 0){
 		 pointType = check;
 		}
+		if(pointType == 2){
+			sqlite = new SQLite(this.getLogger(), pluginTag, "lp", this.getDataFolder().toString());
 		
-		
-		if(pointType == 3){
+		}else if(pointType == 3){
 			// if it's mysql
 			
 			String miss = "";
@@ -296,9 +292,8 @@ debug("error with loading users");
 			checkString = checkStringVariable("mysql-database");
 			if(!checkString.isEmpty()){
 				mysql_database = checkString;
-			}else{ miss = miss+"database "; }
 			
-			
+			}	
 			if(miss.length() < 3){
 			mysql = new MySQL(this.getLogger(), pluginTag, mysql_host, mysql_port, mysql_database, mysql_user, mysql_pass);
 			mysql.open();
@@ -313,58 +308,44 @@ debug("error with loading users");
 	}
 	
 	public void kickStart(String player){
+		if(pointType == 1){
 		
-if(users.containsKey(player)){
-			
+		
+		if(users.containsKey(player)){
 			users.get(player).setTimeComparison(new Date().getTime());
-		}else{
-			
+		}else{	
 			if(pointType == 1){
+				kickStartSQL(player);
+			}else{
+				kickStartFile(player);
+			}
+		}
+		}else if(pointType == 2 || pointType == 3){
 			kickStartSQL(player);
-		}else{
-			kickStartFile(player);
 		}
-		}
-		
 	}
 
 private void kickStartSQL(String player) { //gets the users elements and if new creates him
-		users.put(player, new LPUser(player, startingPoints, 0, 0, new Date().getTime()));
+			users.put(player, new LPUser(player, startingPoints, 0, 0, new Date().getTime()));
+			debug("NEW USER INSERTED"+player);
 	}
 
 	private void kickStartFile(String player) { //gets the users elements and if new creates him
-		
-		
-		
 		if (!LPFileManager.load(player)) { //if player dont excists 
-			// we put starting points, TotalTime, and time since last point
-			
+			// we put starting points, TotalTime, and time since last point	
 			users.put(player, new LPUser(player, startingPoints, 0, 0, new Date().getTime()));
 			debug("NEW USER INSERTED"+player);
 		}
-		
 		debug(users.get(player).getTime()+"");
-		
-		
-		
 	}
 
 	public String colorize(String message) {
-		return message.replaceAll("&([a-f0-9])", ChatColor.COLOR_CHAR + "$1");
-		
-		
+		return message.replaceAll("&([a-f0-9])", ChatColor.COLOR_CHAR + "$1");	
 	}
 	
 	
 	public int getTimeLeft(String player){
-long now = new Date().getTime();
-
-// cycle = 300 
-// getLoyaltTime = 11
-// now - timecomparision (time spent) 
-		int str1= (int) (getCycleNumber()-(((now-users.get(player).getTimeComparison())/1000)+users.get(player).getTime()));
-debug(str1+"");
-		return str1;
+		return (int) (getCycleNumber()-(((new Date().getTime()-users.get(player).getTimeComparison())/1000)+users.get(player).getTime()));
 	}
 	
 	
@@ -530,7 +511,7 @@ debug("hmm checkconfig");
 	
 	
 	public void startUpdateCheck() {
-		version = Integer.parseInt(getDescription().getVersion().replaceAll("\\.", ""));
+		version = VersionFormat(getDescription().getVersion());
 		newestVersion = version;
 			getNewestVersion();	
 			
@@ -546,8 +527,8 @@ debug("hmm checkconfig");
 		int total = 0;
 		
 		debug("type:"+pointType);
-		debug(!sqlite.checkConnection()+" conn");
 		if(pointType == 2){
+		debug(!sqlite.checkConnection()+" conn");
 		debug("check"+sqlite.checkTable("users"));
 		if(!sqlite.checkTable("users")){
 		sqlite.createTable("CREATE TABLE users" +
@@ -570,7 +551,7 @@ debug("hmm checkconfig");
 			try {
 				rs.next();
 				c = rs.getInt("c");
-				debug("before rs.next " + c);
+				debug("before rs.next Count: " + c);
 				rs.close();
 			} catch (SQLException e) {
 
@@ -643,24 +624,14 @@ debug("hmm checkconfig");
 	public void getNewestVersion(){
 		
 		try {
-			// open HTTP connection
 			URL url = new URL("https://raw.github.com/franzmedia/LoyaltyPoints/master/version.txt");
 			URLConnection connection = url.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			newVersion = in.readLine();
-			debug(newVersion);
+			debug(newVersion);	
 			
-			String NV = newVersion.replaceAll("\\.", "");
-			if(NV.length() > 3){
-				char arr[] = newVersion.toCharArray();
-				NV = "";
-				for(int i = 0; i < 3; i++){
-					NV = NV + arr[i]; 
-				}
-				newestVersion = Integer.parseInt(NV);
-			}else{
-			newestVersion = Integer.parseInt(newVersion);	
-			}
+			newestVersion = VersionFormat(newVersion);
+			
 			
 			
 			in.close();
@@ -672,7 +643,24 @@ debug("hmm checkconfig");
 	}
 	
 	
-	
+	private int VersionFormat(String Version){
+		String NV = Version.replaceAll("\\.", "");
+		debug("AFTER NV"+NV);
+			char arr[] = NV.toCharArray();
+			NV = "";
+			for(int i = 0; i < arr.length; i++){
+				NV = NV + arr[i]; 
+		
+			}
+			int miss = 4-arr.length;
+			
+			for(int i = 0; i < miss; i++){
+				NV = NV + 0;
+		
+			}	
+			debug("newest:"+NV);
+		return Integer.parseInt(NV);
+	}
 
 public int getSaveTimer() {
 	return SaveTimer;
@@ -690,6 +678,7 @@ public Map<String, LPUser> getUsers() {
 
 public boolean upToDate() {
 boolean returnstr = false;
+debug("uptoDATE"+newestVersion +">"+version);
 	if(newestVersion > version){
 		returnstr = false;
 	}else{
@@ -721,16 +710,15 @@ for(LPUser user : users.values()){
 				if(pointType == 2){  rs = sqlite.query(sql); }else{ rs = mysql.query(sql); }
 				
 			}else{
-			
+				String sql = "INSERT INTO users VALUES (\""+user.getName()+ "\",\""+user.getPoint()+"\",\"" +user.getTime() +"\",\"" + user.getTotalTime()+"\")";
 				debug("else");
-				rs = sqlite.query("INSERT INTO users VALUES (\""+user.getName()+ "\",\""+user.getPoint()+"\",\"" +user.getTime() +"\",\"" + user.getTotalTime()+"\")");
+				if(pointType == 2){  rs = sqlite.query(sql); }else{ rs = mysql.query(sql); }
 				
 			}
 				
 			
 		} catch (SQLException e) {
 					
-// 
 			e.printStackTrace();
 			debug(e.getSQLState());
 		}
@@ -739,4 +727,9 @@ for(LPUser user : users.values()){
 	}
 	
 }
+
+public File getMapFile() {
+	return mapFile;
+}
+
 }
