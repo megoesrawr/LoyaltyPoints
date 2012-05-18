@@ -160,7 +160,8 @@ debug("error with loading users");
 		
 				
 		}else if(pointType == 1){
-			mapFileConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "points.yml"));
+			mapFile = new File(this.getDataFolder(), "points.yml");
+			mapFileConfig = YamlConfiguration.loadConfiguration(mapFile);
 			for (String s : mapFileConfig.getKeys(false)) {
 				kickStartFile(s);
 				usersCount++;
@@ -538,7 +539,7 @@ debug("hmm checkconfig");
 				"	point	 int(16)," +
 				"	totaltime int(25)," +
 				"	time		int(10) )"  );
-
+		
 		mapFileConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "points.yml"));
 		for (String playerName : mapFileConfig.getKeys(false)) {
 			int points = mapFileConfig.getInt(playerName + ".points");
