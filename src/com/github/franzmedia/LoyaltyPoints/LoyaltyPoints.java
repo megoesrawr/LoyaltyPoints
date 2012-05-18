@@ -37,6 +37,7 @@ public class LoyaltyPoints extends JavaPlugin {
 	private FileConfiguration config;
 	private File mapFile;
 	private FileConfiguration mapFileConfig;
+	private LPFileManager LPFM;
 	
 	/* Messages  EDITABLE					 */ 
 	public String pluginTag = "&6[LoyaltyPoints]";
@@ -63,7 +64,7 @@ public class LoyaltyPoints extends JavaPlugin {
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new CountScheduler(this),(long) 0);
 		
 		if(pointType == 1){
-			LPFileManager.save();
+			LPFM.save();
 		}else{
 			save();
 			if(pointType == 2){	sqlite.close();	}else{  mysql.close(); 	}
@@ -132,6 +133,7 @@ public class LoyaltyPoints extends JavaPlugin {
 					"	time		int(10) )"  );
 				} 	
 			}
+			 
 		
 		if(status == 1){			
 		Long now = new Date().getTime();
@@ -156,12 +158,14 @@ rs.close();
 debug("error with loading users");
 		}
 		
-		
+		}
 		
 				
 		}else if(pointType == 1){
-			mapFile = new File(this.getDataFolder(), "points.yml");
-			mapFileConfig = YamlConfiguration.loadConfiguration(mapFile);
+			LPFM = new LPFileManager(this);
+			info(getDescription(), "LPFM");
+			mapFile = new File(getDataFolder(), "points.yml");
+		mapFileConfig = YamlConfiguration.loadConfiguration(mapFile);
 			for (String s : mapFileConfig.getKeys(false)) {
 				kickStartFile(s);
 				usersCount++;
@@ -170,7 +174,7 @@ debug("error with loading users");
 			logger.info(pluginTag + " it seems like there are a error on your PointType,  1-3 is a allowed value!");
 		
 		}
-		}
+		
 	
 		logger.info(pluginTag+ " there have been loaded a total of "+ usersCount+" users.");
 		
@@ -334,7 +338,7 @@ private void kickStartSQL(String player) { //gets the users elements and if new 
 	}
 
 	private void kickStartFile(String player) { //gets the users elements and if new creates him
-		if (!LPFileManager.load(player)) { //if player dont excists 
+		if (!LPFM.load(player)) { //if player dont excists 
 			// we put starting points, TotalTime, and time since last point	
 			users.put(player, new LPUser(player, startingPoints, 0, 0, new Date().getTime()));
 			debug("NEW USER INSERTED"+player);
@@ -732,6 +736,10 @@ for(LPUser user : users.values()){
 }
 
 public File getMapFile() {
+	
+	
+		mapFile = new File(this.getDataFolder(), "points.yml"); 
+	
 	return mapFile;
 }
 
