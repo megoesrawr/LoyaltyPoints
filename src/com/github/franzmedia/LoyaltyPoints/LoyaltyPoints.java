@@ -28,7 +28,7 @@ public class LoyaltyPoints extends JavaPlugin {
 	private SQLite sqlite;
 	private MySQL mysql;
 	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0, SaveTimer = 3600, check = -10,version, newestVersion;
-	private int debug = 1;
+	private int debug = 0;
 	private int pointType = 2;
 	public String newVersion, checkString = "";
 	private Map<String, LPUser> users = new HashMap<String, LPUser>();
@@ -308,8 +308,6 @@ debug("error with loading users");
 	}
 	
 	public void kickStart(String player){
-		if(pointType == 1){
-		
 		
 		if(users.containsKey(player)){
 			users.get(player).setTimeComparison(new Date().getTime());
@@ -319,15 +317,19 @@ debug("error with loading users");
 			}else{
 				kickStartFile(player);
 			}
+			
 		}
-		}else if(pointType == 2 || pointType == 3){
-			kickStartSQL(player);
-		}
-	}
+		
+		
+}
 
 private void kickStartSQL(String player) { //gets the users elements and if new creates him
-			users.put(player, new LPUser(player, startingPoints, 0, 0, new Date().getTime()));
-			debug("NEW USER INSERTED"+player);
+	
+	
+	users.put(player, new LPUser(player, startingPoints, 0, 0, new Date().getTime()));
+	debug("NEW USER INSERTED"+player);
+	
+	
 	}
 
 	private void kickStartFile(String player) { //gets the users elements and if new creates him
