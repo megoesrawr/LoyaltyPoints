@@ -22,7 +22,8 @@ public class LCListener implements Listener {
 		// plugin.debug("PLayer kom ind:" + user.getTime() + " Starttid:" + user.getTimeComparison());
 		plugin.kickStart(event.getPlayer().getName());
 		LPUser user = plugin.getUsers().get(event.getPlayer().getName());
-		plugin.debug("PLayer kom ind:" + user.getTime() + " Starttid:" + user.getTimeComparison());
+		plugin.debug("PLayer kom ind:" + user.getTime() + " Starttid:" + user.getTimeComparison() + "starttime"+user.getTime() + "total "+ user.getTotalTime());
+		user.setOnline(true);
 	}
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onPlayerLogout(PlayerQuitEvent event) {
@@ -38,7 +39,7 @@ public class LCListener implements Listener {
 		user.setTime(user.getTime() + (int) ((now - user.getTimeComparison())/1000));
 			
 	}
-	
+		user.setOnline(false);
 		user.setTotalTime(user.getTotalTime() + (int) ((now-user.getTimeComparison())/1000));
 		user.setTimeComparison(0);
 	

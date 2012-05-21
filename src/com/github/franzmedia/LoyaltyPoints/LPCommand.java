@@ -132,9 +132,10 @@ public class LPCommand implements CommandExecutor {
 		
 	
 	private void playtime(CommandSender sender, String[] args) {
-		plugin.debug(""+plugin.getUsers().get(sender.getName()).getTotalTime());
-		String daten = plugin.getNiceNumber(plugin.getUsers().get(sender.getName()).getTotalTime());
+		LPUser u = plugin.getUsers().get(sender.getName());
+		int time = u.timeSinceLastRun()+u.getTotalTime();
 		
+		String daten = plugin.getNiceNumber(time);
 		sender.sendMessage(plugin.colorize(plugin.pluginTag + "&3 You have been online for &b"+ daten ));
 	
 		
@@ -142,7 +143,14 @@ public class LPCommand implements CommandExecutor {
 
 	private void next(CommandSender sender) {
 		plugin.debug(""+plugin.getTimeLeft(sender.getName()));
-		String daten = plugin.getNiceNumber(plugin.getTimeLeft(sender.getName()));
+		int time = plugin.getTimeLeft(sender.getName());
+		String daten;
+		if(time >= 0){
+		daten = plugin.getNiceNumber(time);
+		}else{
+			 daten = "very soon";
+		}
+		
 		sender.sendMessage(plugin.colorize(plugin.pluginTag +"&3 There are around &b"+ daten+ "&3 until next payout"));
 		
 	}

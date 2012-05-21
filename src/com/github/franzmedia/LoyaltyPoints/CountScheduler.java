@@ -20,41 +20,17 @@ public class CountScheduler implements Runnable {
 	 * resources are used.
 	 */
 	public void run() {
-		int rest = 0;
-		int cycle = plugin.getCycleNumber();
-		Long now = new Date().getTime();
 		
-		// for every player saves the time to the 
+		Long now = new Date().getTime();
 		for (Player players : plugin.getServer().getOnlinePlayers()) {
-			String player = players.getName();
-			LPUser user = plugin.getUsers().get(player);
-			rest =  plugin.getTimeLeft(player);
-			
-			plugin.debug("LOYALTY TIME"+user.getTime()+"rest:"+rest);
-			if (rest <= 0){ // cycleNumber amount of seconds has passed
-				user.setPoint(user.getPoint()+plugin.getIncrement());
-				
-/* DEBUG */		plugin.debug(player+ "REST:"+rest);
-/* DEBUG */		plugin.debug(player+": Time before: "+ user.getTime());
-				user.setTime(0-rest);				
-/* DEBUG */		plugin.debug(player+":Time after: "+ user.getTime());		
-			}else{
-				user.setTime((int) (user.getTime()+((now-user.getTimeComparison())/1000)));
-					
-			}
-			user.setTotalTime(user.getTotalTime()+ (int) ((now -user.getTimeComparison())/1000));
-			
-			plugin.debug("running now:"+ now/1000 + " timecomparison: " + user.getTimeComparison()/1000 +"DIF: "+(now - user.getTimeComparison())/1000 + " cycle:" + cycle );
-			user.setTimeComparison(now);
-			
-			
+			plugin.getUsers().get(players.getName()).runTime();
 		}
 		
+		// saves the Scores!!!!
 		
-
-		// saves the Scores to the file
-		if(now - updateTimer >= (plugin.getUpdateTimer()*20000)){
-			updateTimer = now;
+		plugin.debug(now + "-"+ updateTimer + ">=" + plugin.getUpdateTimer());
+		if(now - updateTimer >= plugin.getUpdateTimer()){
+			updateTimer = new Date().getTime();
 			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 
 				   public void run() {

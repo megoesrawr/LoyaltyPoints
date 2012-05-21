@@ -6,11 +6,11 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 public class LPFileManager {
 	
-	private static LoyaltyPoints LP;
+	private static LoyaltyPoints plugin;
 	private YamlConfiguration yConfig;
 	public LPFileManager(LoyaltyPoints pluginet) {
-		LP = pluginet;
-		 yConfig = YamlConfiguration.loadConfiguration(LP.getMapFile());
+		plugin = pluginet;
+		 yConfig = YamlConfiguration.loadConfiguration(plugin.getMapFile());
 	}
 
 	public boolean load(String playerName) {
@@ -20,8 +20,8 @@ public class LPFileManager {
 			int time = 0;
 			time = yConfig.getInt(playerName + ".time");
 			int totalTime = yConfig.getInt(playerName + ".totalTime");
-			LPUser user = new LPUser(playerName, points, time, totalTime, new Date().getTime());
-			LP.insertUser(user);
+			LPUser user = new LPUser(plugin,playerName, points, time, totalTime, new Date().getTime());
+			plugin.insertUser(user);
 			return true;
 		} else { // must be a new guy!
 			return false;
@@ -30,7 +30,7 @@ public class LPFileManager {
 
 	public void save() {
 		
-		 for(LPUser user : LP.getUsers().values()){
+		 for(LPUser user : plugin.getUsers().values()){
 			String playerName = user.getName();
 			int points = user.getPoint();
 			int time = user.getTime();
@@ -40,7 +40,7 @@ public class LPFileManager {
 			yConfig.set(playerName + ".totalTime", totalTime);
 		}
 		try { // Trying to save it!
-			yConfig.save(LP.getMapFile());
+			yConfig.save(plugin.getMapFile());
 		} catch (IOException e) { // couldn't
 			e.printStackTrace();
 		}
