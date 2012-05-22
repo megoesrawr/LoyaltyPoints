@@ -28,8 +28,7 @@ public class CountScheduler implements Runnable {
 		
 		// saves the Scores!!!!
 		
-		plugin.debug(now + "-"+ updateTimer + ">=" + plugin.getUpdateTimer());
-		if(now - updateTimer >= plugin.getUpdateTimer()){
+		if((now - updateTimer)/1000 >= plugin.getUpdateTimer()){
 			updateTimer = new Date().getTime();
 			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 
