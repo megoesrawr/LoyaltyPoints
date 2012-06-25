@@ -1,33 +1,34 @@
+/* 
+ * AUTHOR: Kasper Franz
+ * Loyalty Points 1.0.9
+ * Last Changed: Made some performance changes
+ */ 
+
 package com.github.franzmedia.LoyaltyPoints;
 import java.util.Date;
 import org.bukkit.entity.Player;
 
-public class CountScheduler implements Runnable {
+public class LPScheduler implements Runnable {
 	private LoyaltyPoints plugin;
 	private long updateTimer;
 
-	public CountScheduler(LoyaltyPoints isCool) {
+	//Main class for LPScheduler
+	public LPScheduler(LoyaltyPoints plugin) {
 		updateTimer = new Date().getTime();
-		plugin = isCool;
+		this.plugin = plugin;
 	}
 	
-	/*
-	 * update timer! in an attempt to save system resources, this plugin has
-	 * only one timer that tracks when to check all updates. this is also in
-	 * seconds, and must be less than or equal to the cycle-time-in-seconds the
-	 * less the number, updates are checked more often, but more resources are
-	 * used the more the number, the updates are checked less often, but less
-	 * resources are used.
-	 */
+
 	public void run() {
 		
 		Long now = new Date().getTime();
+		//Run once for every online player!
 		for (Player players : plugin.getServer().getOnlinePlayers()) {
-			plugin.getUsers().get(players.getName()).runTime();
+			plugin.getUsers().get(players.getName()).givePoint();
 		}
 		
-		// saves the Scores!!!!
 		
+		// if it's time to save to the database/file it does this here in a new thread.
 		if((now - updateTimer)/1000 >= plugin.getUpdateTimer()){
 			updateTimer = new Date().getTime();
 			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {

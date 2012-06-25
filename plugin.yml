@@ -36,7 +36,7 @@ permissions:
         default: true
     loyaltypoints.add:
         description: Allows the player to add x points to the user.
-        default: false
+        default: op
     loyaltypoints.user:
         description: Permissions package of LoyaltyPoints that is essential for a normal user.
         children:

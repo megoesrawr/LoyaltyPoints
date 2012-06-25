@@ -1,3 +1,9 @@
+/* 
+ * AUTHOR: Kasper Franz
+ * Loyalty Points 1.0.8.4 
+ * Last Changed: Added command to change to SQL from file
+ */ 
+
 package com.github.franzmedia.LoyaltyPoints;
 
 import java.util.ArrayList;
@@ -157,13 +163,8 @@ public class LPCommand implements CommandExecutor {
 
 	
 private void add(CommandSender sender, String[] args){
-	int beforepoint = plugin.getUsers().get(args[1]).getPoint();
-	int addPoints = Integer.parseInt(args[2]);
-	try{	
-		String player = args[1];
-		int newpoints = beforepoint+addPoints;
-		plugin.debug("bef:"+beforepoint+" add:"+addPoints+ " newP: "+newpoints);
-		plugin.getUsers().get(player).setPoint(newpoints);
+	try{			
+		plugin.getUsers().get(args[1]).increasePoint(Integer.parseInt(args[2]));
 		sender.sendMessage(plugin.colorize(plugin.pluginTag +"&3 there have been added &b"+Integer.parseInt(args[2]) + "&3 points to &b"+args[1]));
 	
 	

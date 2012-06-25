@@ -30,16 +30,14 @@ public class InvalidConfiguration extends Exception {
 	/**
 	 * 
 	 */
-	public InvalidConfiguration() {
-		// TODO Auto-generated constructor stub
-	}
+	
 
 	/**
 	 * @param message
 	 */
 	public InvalidConfiguration(String message) {
 		super(message);
-		// TODO Auto-generated constructor stub
+	
 	}
 
 	/**
@@ -47,7 +45,7 @@ public class InvalidConfiguration extends Exception {
 	 */
 	public InvalidConfiguration(Throwable cause) {
 		super(cause);
-		// TODO Auto-generated constructor stub
+	
 	}
 
 	/**
@@ -56,7 +54,6 @@ public class InvalidConfiguration extends Exception {
 	 */
 	public InvalidConfiguration(String message, Throwable cause) {
 		super(message, cause);
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
@@ -68,8 +65,6 @@ public class InvalidConfiguration extends Exception {
 	public InvalidConfiguration(String message, Throwable cause, boolean enableSuppression,
 			boolean writableStackTrace) {
 		super(message,cause);
-		//super(message, cause, enableSuppression, writableStackTrace);
-		// TODO Auto-generated constructor stub
 	}
 
 }

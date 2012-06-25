@@ -1,3 +1,10 @@
+/* 
+ * AUTHOR: Kasper Franz
+ * Loyalty Points 1.0.9
+ * Last Changed: fixed the save error, and the Mysql error, added new config file and a new config index 
+ * 
+ */ 
+
 package com.github.franzmedia.LoyaltyPoints;
 import lib.PatPeter.SQLibrary.*;
 import java.io.BufferedReader;
@@ -15,7 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -23,16 +29,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/** @author Kasper Franz - HD Solutions */
 public class LoyaltyPoints extends JavaPlugin {
 	public final Logger logger = Logger.getLogger("Minecraft");
 	private SQLite sqlite;
 	private MySQL mysql;
+	private int status = 0;
 	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0, SaveTimer = 3600, check = -10,version, newestVersion;
-	private int debug = 0;
+	private int debug = 1;
+	private boolean afkTrackingSystem = true;
 	private int pointType = 2;
 	public String newVersion, checkString = "";
 	private Map<String, LPUser> users = new HashMap<String, LPUser>();
+	
 	/* Mysql */
 	private String mysql_host = null, mysql_port = "3306", mysql_user = null, mysql_pass = null, mysql_database = null;
 	private FileConfiguration config;
@@ -64,7 +72,7 @@ public class LoyaltyPoints extends JavaPlugin {
 	public void onDisable() {
 
 		for (Player players : getServer().getOnlinePlayers()) {
-			users.get(players.getName()).runTime();
+			users.get(players.getName()).givePoint();
 		}
 		
 		if(pointType == 1){
@@ -108,7 +116,7 @@ public class LoyaltyPoints extends JavaPlugin {
 		 * .logger.severe("[LoyaltyPoints] Milestones paying feature disabled."
 		 * ); economyPresent = false; }
 		 */
-		getServer().getScheduler().scheduleAsyncRepeatingTask(this, new CountScheduler(this), updateTimer, updateTimer);
+		getServer().getScheduler().scheduleAsyncRepeatingTask(this, new LPScheduler(this), updateTimer, updateTimer);
 		
 	}
 
@@ -117,33 +125,16 @@ public class LoyaltyPoints extends JavaPlugin {
 	
 		logger.info(pluginTag+" Beginning to load User points.");
 		if(pointType == 2 || pointType == 3){
-			int status = 1;
-			if(pointType == 2){
-			if(!sqlite.checkTable("users")){
-				status = 0;
-			sqlite.createTable("CREATE TABLE users" +
-					"( 	username varchar(16) NOT NULL," +
-					"	point	 int(16)," +
-					"	totaltime int(25)," +
-					"	time		int(10) )"  );
-				}
-			}else if(pointType == 3){
-				if(!mysql.checkTable("users")){
-					status = 0;
-			mysql.createTable("CREATE TABLE users" +
-					"( 	username varchar(16) NOT NULL," +
-					"	point	 int(16)," +
-					"	totaltime int(25)," +
-					"	time		int(10) )"  );
-				} 	
-			}
-			 
-		
+			status = 1;
+			checkTable();
 		if(status == 1){			
 		Long now = new Date().getTime();
 		ResultSet rs;
 		String sql = "SELECT count(username) as c FROM users";
-		if(pointType == 2){  rs = sqlite.query(sql); }else{ rs = mysql.query(sql); }
+		if(pointType == 2){ 
+			rs = sqlite.query(sql); 
+		}else{
+			rs = mysql.query(sql); }
 		
 		try {
 			rs.next();
@@ -242,6 +233,11 @@ debug("error with loading users");
 			 startingPoints = check;
 		 }
 		 
+		 check = checkVariable("SaveTimer");
+		 if(check > 0){
+			 SaveTimer = check;
+		 }
+		 
 		checkString = checkStringVariable("plugin-tag");
 		 if(!checkString.isEmpty()){
 			 pluginTag = colorize(checkString);
@@ -257,15 +253,24 @@ debug("error with loading users");
 			 selfcheckMessage = colorize(checkString.replaceAll("%TAG%", pluginTag));
 		 }
 		
-		if(!config.contains("SaveTimer")){
-			config.set("SaveTimer", "3600");
+		if(!config.contains("afk-tracking-system")){
+			config.set("afk-tracking-system", "1");
 			try {
 				config.save(new File(this.getDataFolder(), "config.yml"));
 			} catch (IOException e) {
-			debug("ERROR while loading new variable");
+			debug("ERROR while loading saving variable");
 			}
 		}else{
-			SaveTimer = config.getInt("SaveTimer");
+			int gettedValue = config.getInt("afk-tracking-system");
+			switch(gettedValue){
+			case 1: 
+				afkTrackingSystem = true; break;
+			case 2: 
+				afkTrackingSystem = false; break;
+				
+				default: afkTrackingSystem = true; break;
+			}
+			
 		}
 		
 		check = checkVariable("point-type");
@@ -308,7 +313,8 @@ debug("error with loading users");
 			mysql = new MySQL(this.getLogger(), pluginTag, mysql_host, mysql_port, mysql_database, mysql_user, mysql_pass);
 			mysql.open();
 			}else{
-			logger.warning(pluginTag + "We have a error with the following mysql things:" + miss);	
+			logger.warning(pluginTag + "We have a error with the following mysql things:" + miss);
+			setEnabled(false);
 			}
 		}
 		// ConfigurationSection milestonesCS =
@@ -545,12 +551,7 @@ debug("hmm checkconfig");
 		if(pointType == 2){
 		debug(!sqlite.checkConnection()+" conn");
 		debug("check"+sqlite.checkTable("users"));
-		if(!sqlite.checkTable("users")){
-		sqlite.createTable("CREATE TABLE users" +
-				"( 	username varchar(16) NOT NULL," +
-				"	point	 int(16)," +
-				"	totaltime int(25)," +
-				"	time		int(10) )"  );
+		checkTable();
 		
 		mapFileConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "points.yml"));
 		for (String playerName : mapFileConfig.getKeys(false)) {
@@ -583,18 +584,10 @@ debug("hmm checkconfig");
 			}
 		users.put(playerName, user);
 		}
-		}
 		
 	}else if(pointType == 3){
 		debug("point type 3:");
-		if(!mysql.checkTable("users")){
-			mysql.createTable("CREATE TABLE users" +
-					"( 	username varchar(16) NOT NULL," +
-					"	point	 int(16)," +
-					"	totaltime int(25)," +
-					"	time		int(10) )"  );
-
-		}	
+		checkTable();	
 	
 	mapFileConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "points.yml"));
 	for (String playerName : mapFileConfig.getKeys(false)) {
@@ -706,9 +699,9 @@ debug("uptoDATE"+newestVersion +">"+version);
 
 public void save() {
 	if(pointType == 2 || pointType == 3){
-for(LPUser user : users.values()){
-	
+					checkTable();
 		
+for(LPUser user : users.values()){
 		debug(user.getName());
 		
 		try {
@@ -752,6 +745,34 @@ for(LPUser user : users.values()){
 	}
 }
 
+private void checkTable() {
+	if(pointType == 2){
+		debug("SQLITE"+sqlite.checkTable("users"));
+		if(!sqlite.checkTable("users")){
+			status = 0;
+			
+			sqlite.createTable("CREATE TABLE users" +
+					"( 	username varchar(16) NOT NULL PRIMARY KEY," +
+					"	point	 int(16)," +
+					"	totaltime int(25)," +
+					"	time		int(10))");
+			debug("SQLITE"+sqlite.checkTable("users"));
+		}
+	}else if(pointType == 3){
+		if(!mysql.checkTable("users")){
+			status = 0;
+			mysql.createTable("CREATE TABLE users" +
+					"( 	username varchar(16) NOT NULL," +
+					"	point	 int(16)," +
+					"	totaltime int(25)," +
+					"	time		int(10), "+ 
+					" primary key (username)" +
+					")engine = innodb; ");
+
+		}
+	}
+}
+
 public File getMapFile() {
 	
 	
@@ -759,5 +780,10 @@ public File getMapFile() {
 	
 	return mapFile;
 }
+
+public boolean AfkTrackingSystem() {
+	return afkTrackingSystem;
+}
+
 
 }

@@ -1,6 +1,13 @@
+/* 
+ * AUTHOR: Kasper Franz
+ * Loyalty Points 1.0.9
+ * Last Changed: Made the AFK system
+ */ 
+
 package com.github.franzmedia.LoyaltyPoints;
 
 import java.util.Date;
+import org.bukkit.Location;
 
 
 public class LPUser{
@@ -12,16 +19,8 @@ public class LPUser{
 	private Milestone[] milestones;
 	private LoyaltyPoints lp;
 	private boolean online;
-	
-	
-	public boolean isOnline() {
-		return online;
-	}
-
-
-	public void setOnline(boolean online) {
-		this.online = online;
-	}
+	private boolean moved;
+	private Location location;
 
 
 	public LPUser(LoyaltyPoints lp, String name, int point, int time, int totalTime, long timeComparison){
@@ -35,6 +34,14 @@ public class LPUser{
 		
 	}
 
+	public boolean isOnline() {
+		return online;
+	}
+
+
+	public void setOnline(boolean online) {
+		this.online = online;
+	}
 
 	public String getName() {
 		return name;
@@ -49,10 +56,26 @@ public class LPUser{
 	public int getPoint() {
 		return point;
 	}
-
-
-	public void setPoint(int point) {
+	
+	public void setPoint(int point){
 		this.point = point;
+	}
+
+
+	public void increasePoint(int point){
+		this.point = this.point+point;
+	}
+	
+	public boolean removePoint(int point){
+		boolean rtnb;
+		if(point >= this.point){
+			rtnb = true;
+			this.point = this.point-point; 
+		}else{
+			rtnb = true;
+		}
+		
+		return rtnb;
 	}
 
 
@@ -105,31 +128,53 @@ public class LPUser{
 	}
 	
 	
-	public void runTime(){
+	public void givePoint(){
+		//IF AFK SYSTEM == ON
+		boolean go = true;
+		if(lp.AfkTrackingSystem() && !moved){
+			go = false;
+		}
+		
+		if(go){
 		Long before = timeComparison;
 		Long now = new Date().getTime();
 		int rest = getTimeLeft();
-		timeComparison = now;
 		int diff = (int) ((now-before)/1000);
-		lp.debug("DIF"+diff+""+ "REST: "+rest);
 		
-		lp.debug("LOYALTY TIME"+time+"rest:"+rest+ "DIF"+ diff);
 		if (rest <= 0){ 
 			setPoint(point+lp.getIncrement());
-			
-/* DEBUG */		lp.debug(name+ "REST:"+rest);
-/* DEBUG */		lp.debug(name+": Time before: "+ getTime());
-			time = 0-rest;				
-/* DEBUG */		lp.debug(name+":Time after: "+ getTime());		
+			time = 0-rest;						
 		}else{
-			
 			time = time + diff;
-				
 		}
-		lp.debug(totalTime+"");
+		
 		totalTime = totalTime + diff;
-		lp.debug(totalTime+"");
+		moved = false;
+		timeComparison = now;
 		}
+	}
+
+
+	public void setMoved(boolean moved) {
+this.moved = moved;
+		
+	}
+
+
+	public boolean getMoved() {
+		return moved;
+	}
+
+	public void setLocation(Location location) {
+		this.location = location;
+			
+			}
+	
+	
+	public Location getLocation() {
+return location;
+	
+	}
 		
 	
 }
