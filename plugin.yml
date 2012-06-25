@@ -1,6 +1,6 @@
 name: LoyaltyPoints
 main: com.github.franzmedia.LoyaltyPoints.LoyaltyPoints
-version: 1.0.9
+version: B1.0.9
 commands:
     lp:
         description: LoyaltyPoints base command.
