@@ -16,7 +16,6 @@ public class LPUser{
 	private int time;
 	private int totalTime;
 	private long timeComparison;
-	private Milestone[] milestones;
 	private LoyaltyPoints lp;
 	private boolean online;
 	private boolean moved;
@@ -99,9 +98,7 @@ public class LPUser{
 	}
 
 
-	public Milestone[] getMilestones() {
-		return milestones;
-	}
+	
 
 
 	public long getTimeComparison() {
@@ -131,6 +128,7 @@ public class LPUser{
 	public void givePoint(){
 		//IF AFK SYSTEM == ON
 		boolean go = true;
+		lp.debug(lp.AfkTrackingSystem() +" "+ moved);
 		if(lp.AfkTrackingSystem() && !moved){
 			go = false;
 		}

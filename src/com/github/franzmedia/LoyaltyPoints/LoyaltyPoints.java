@@ -35,7 +35,7 @@ public class LoyaltyPoints extends JavaPlugin {
 	private MySQL mysql;
 	private int status = 0;
 	private int increment = 1, cycleNumber = 600, updateTimer = cycleNumber/4 ,startingPoints = 0, SaveTimer = 3600, check = -10,version, newestVersion;
-	private int debug = 1;
+	private int debug = 0;
 	private boolean afkTrackingSystem = true;
 	private int pointType = 2;
 	public String newVersion, checkString = "";
@@ -254,7 +254,7 @@ debug("error with loading users");
 		 }
 		
 		if(!config.contains("afk-tracking-system")){
-			config.set("afk-tracking-system", "1");
+			config.set("afk-tracking-system", 1);
 			try {
 				config.save(new File(this.getDataFolder(), "config.yml"));
 			} catch (IOException e) {
@@ -265,7 +265,7 @@ debug("error with loading users");
 			switch(gettedValue){
 			case 1: 
 				afkTrackingSystem = true; break;
-			case 2: 
+			case 0: 
 				afkTrackingSystem = false; break;
 				
 				default: afkTrackingSystem = true; break;
