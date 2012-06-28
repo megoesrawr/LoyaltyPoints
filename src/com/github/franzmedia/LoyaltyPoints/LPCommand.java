@@ -1,7 +1,7 @@
 /* 
  * AUTHOR: Kasper Franz
- * Loyalty Points 1.0.8.4 
- * Last Changed: Added command to change to SQL from file
+ * Loyalty Points 1.0.9
+ * Last Changed: Added general permission 
  */ 
 
 package com.github.franzmedia.LoyaltyPoints;
@@ -28,6 +28,8 @@ public class LPCommand implements CommandExecutor {
 
 	public boolean onCommand(CommandSender sender, Command cmd, String zhf, String[] args) {
 		String playerName = sender.getName();
+		//permission check
+		if(sender.hasPermission("loyaltypoints.general")) {
 		 if (args.length == 0) {
 			if (sender instanceof Player){
 				if(sender.hasPermission("loyaltypoints.check.self")) {
@@ -127,9 +129,10 @@ public class LPCommand implements CommandExecutor {
 				}
 			}
 		}
-		return true;
+		}
+		 return true;
 		
-
+		
 	
 	}
 			
@@ -169,7 +172,7 @@ private void add(CommandSender sender, String[] args){
 	
 	
 	}catch(Exception exception){
-		sender.sendMessage("ooops error");
+		sender.sendMessage(plugin.colorize(plugin.pluginTag +"It Looks like the user aren't found"));
 	}
 	
 	

@@ -1,7 +1,7 @@
 /* 
  * AUTHOR: Kasper Franz
  * Loyalty Points 1.0.9
- * Last Changed: Made some performance changes
+ * Last Changed: added general permission
  */ 
 
 package com.github.franzmedia.LoyaltyPoints;
@@ -23,8 +23,10 @@ public class LPScheduler implements Runnable {
 		
 		Long now = new Date().getTime();
 		//Run once for every online player!
-		for (Player players : plugin.getServer().getOnlinePlayers()) {
-			plugin.getUsers().get(players.getName()).givePoint();
+		for (Player player : plugin.getServer().getOnlinePlayers()) {
+			if(player.hasPermission("loyaltypoints.check.self")) {
+			plugin.getUsers().get(player.getName()).givePoint();
+			}
 		}
 		
 		

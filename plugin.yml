@@ -1,12 +1,16 @@
 name: LoyaltyPoints
 main: com.github.franzmedia.LoyaltyPoints.LoyaltyPoints
-version: B1.0.9
+version: 1.0.9
+dev-url: http://dev.bukkit.org/server-mods/loyalty_points/
 commands:
     lp:
         description: LoyaltyPoints base command.
         usage: <command>
         aliases: [loyaltypoints]
 permissions:
+    loyaltypoints.general:
+        description: Allows player to use the plugin.
+        default: true
     loyaltypoints.check.self:
         description: Allows player to check his player points.
         default: true

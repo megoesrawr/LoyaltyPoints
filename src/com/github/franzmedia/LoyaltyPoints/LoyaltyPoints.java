@@ -3,7 +3,15 @@
  * Loyalty Points 1.0.9
  * Last Changed: fixed the save error, and the Mysql error, added new config file and a new config index 
  * 
- */ 
+ */
+
+/*
+	 * Planned Features Possibility to pay a defined amount of money when a
+	 * player gains a specified amount of LoyaltyPoints Only pay points if the
+	 * Server-wide announcements when a player gains a certain
+	 * amount of points (reaches a point milestone) Receive item rewards on
+	 * specified point milestones
+	 */
 
 package com.github.franzmedia.LoyaltyPoints;
 import lib.PatPeter.SQLibrary.*;
@@ -61,14 +69,6 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	// public static Economy economy = null;
 	// public boolean economyPresent = true;
-
-	/*
-	 * Planned Features Possibility to pay a defined amount of money when a
-	 * player gains a specified amount of LoyaltyPoints Only pay points if the
-	 * player is not AFK Server-wide announcements when a player gains a certain
-	 * amount of points (reaches a point milestone) Receive item rewards on
-	 * specified point milestones
-	 */
 	public void onDisable() {
 
 		for (Player players : getServer().getOnlinePlayers()) {
@@ -82,7 +82,6 @@ public class LoyaltyPoints extends JavaPlugin {
 			if(pointType == 2){	sqlite.close();	}else{  mysql.close(); 	}
 			
 		}
-		
 		users.clear();
 		info(this.getDescription(), "disabled");
 	}
