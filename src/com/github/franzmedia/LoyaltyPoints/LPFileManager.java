@@ -2,25 +2,28 @@ package com.github.franzmedia.LoyaltyPoints;
 
 import java.io.IOException;
 import java.util.Date;
+
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class LPFileManager {
-	
+
 	private static LoyaltyPoints plugin;
-	private YamlConfiguration yConfig;
-	public LPFileManager(LoyaltyPoints pluginet) {
+	private final YamlConfiguration yConfig;
+
+	public LPFileManager(final LoyaltyPoints pluginet) {
 		plugin = pluginet;
-		 yConfig = YamlConfiguration.loadConfiguration(plugin.getMapFile());
+		yConfig = YamlConfiguration.loadConfiguration(plugin.getMapFile());
 	}
 
-	public boolean load(String playerName) {
-		
+	public boolean load(final String playerName) {
+
 		if (yConfig.contains(playerName + ".points")) { // old guy...
-			int points = yConfig.getInt(playerName + ".points");
+			final int points = yConfig.getInt(playerName + ".points");
 			int time = 0;
 			time = yConfig.getInt(playerName + ".time");
-			int totalTime = yConfig.getInt(playerName + ".totalTime");
-			LPUser user = new LPUser(plugin,playerName, points, time, totalTime, new Date().getTime());
+			final int totalTime = yConfig.getInt(playerName + ".totalTime");
+			final LPUser user = new LPUser(plugin, playerName, points, time,
+					totalTime, new Date().getTime());
 			plugin.insertUser(user);
 			return true;
 		} else { // must be a new guy!
@@ -29,19 +32,19 @@ public class LPFileManager {
 	}
 
 	public void save() {
-		
-		 for(LPUser user : plugin.getUsers().values()){
-			String playerName = user.getName();
-			int points = user.getPoint();
-			int time = user.getTime();
-			int totalTime = user.getTotalTime();
+
+		for (final LPUser user : plugin.getUsers().values()) {
+			final String playerName = user.getName();
+			final int points = user.getPoint();
+			final int time = user.getTime();
+			final int totalTime = user.getTotalTime();
 			yConfig.set(playerName + ".points", points);
 			yConfig.set(playerName + ".time", time);
 			yConfig.set(playerName + ".totalTime", totalTime);
 		}
 		try { // Trying to save it!
 			yConfig.save(plugin.getMapFile());
-		} catch (IOException e) { // couldn't
+		} catch (final IOException e) { // couldn't
 			e.printStackTrace();
 		}
 	}
