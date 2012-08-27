@@ -33,8 +33,6 @@ import java.util.logging.Logger;
 
 import lib.PatPeter.SQLibrary.MySQL;
 import lib.PatPeter.SQLibrary.SQLite;
-
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -42,14 +40,14 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class LoyaltyPoints extends JavaPlugin {
-	public final Logger logger = Logger.getLogger("Minecraft");
+	private final Logger logger = Logger.getLogger("Minecraft");
 	private SQLite sqlite;
 	private MySQL mysql;
 	private int status = 0;
 	private int increment = 1, cycleNumber = 600,
 			updateTimer = cycleNumber / 4, startingPoints = 0,
 			SaveTimer = 3600, check = -10, version, newestVersion;
-	private final int debug = 0;
+	private int debug = 0;
 	private boolean afkTrackingSystem = true;
 	private int pointType = 2;
 	public String newVersion, checkString = "";
@@ -62,14 +60,8 @@ public class LoyaltyPoints extends JavaPlugin {
 	private File mapFile;
 	private FileConfiguration mapFileConfig;
 	private LPFileManager LPFM;
-
+	private LPTexts lptext;
 	/* Messages EDITABLE */
-	public String pluginTag = "&6[LoyaltyPoints]";
-	public String consoleCheck = pluginTag + " Sorry, I dont track consoles.";
-	public String selfcheckMessage = colorize(pluginTag
-			+ " &3You have &b%POINTS% &3Loyalty Points.");
-	public String checkotherMessage = colorize(pluginTag
-			+ " &3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.");
 
 	// public List<String> milestones = new ArrayList<String>();
 	// public Map<String, List<Integer>> rewardsTracker = new HashMap<String,
@@ -101,6 +93,7 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+		lptext = new LPTexts();
 		checkConfig();
 		loadVariables();
 		getServer().getScheduler().scheduleSyncDelayedTask(this,
@@ -123,7 +116,7 @@ public class LoyaltyPoints extends JavaPlugin {
 						startUpdateCheck();
 					}
 				});
-		getCommand("lp").setExecutor(new LPCommand(this));
+		getCommand("lp").setExecutor(new LPCommand(this,lptext));
 		info(getDescription(), "enabled");
 
 		/*
@@ -134,15 +127,19 @@ public class LoyaltyPoints extends JavaPlugin {
 		 */
 		getServer().getScheduler().scheduleAsyncRepeatingTask(this,
 				new LPScheduler(this), updateTimer, updateTimer);
-
+		for (final Player players : getServer().getOnlinePlayers()) {
+			kickStart(players.getName());
+			
+		}
 	}
 
 	public void loadPointsData() {
 		int usersCount = 0;
 
-		logger.info(pluginTag + " Beginning to load User points.");
+		logger.info(lptext.getConsoleLoadingUser());
 		if (pointType == 2 || pointType == 3) {
 			status = 1;
+			checkConnection();
 			checkTable();
 			if (status == 1) {
 				final Long now = new Date().getTime();
@@ -176,14 +173,13 @@ public class LoyaltyPoints extends JavaPlugin {
 					}
 					rs.close();
 				} catch (final SQLException e1) {
-					debug("error with loading users");
+					debug(lptext.getConsoleMysqlError());
 				}
 
 			}
 
 		} else if (pointType == 1) {
 			LPFM = new LPFileManager(this);
-			info(getDescription(), "LPFM");
 			mapFile = new File(getDataFolder(), "points.yml");
 			mapFileConfig = YamlConfiguration.loadConfiguration(mapFile);
 			for (final String s : mapFileConfig.getKeys(false)) {
@@ -191,13 +187,11 @@ public class LoyaltyPoints extends JavaPlugin {
 				usersCount++;
 			}
 		} else {
-			logger.info(pluginTag
-					+ " it seems like there are a error on your PointType,  1-3 is a allowed value!");
+			logger.info(lptext.getConsolePointTypeError());
 
 		}
-
-		logger.info(pluginTag + " there have been loaded a total of "
-				+ usersCount + " users.");
+		logger.info(lptext.getConsoleLoadingUserDone().replace("%TOTAL%", usersCount+""));
+		
 
 	}
 
@@ -207,8 +201,7 @@ public class LoyaltyPoints extends JavaPlugin {
 			str = config.getString(name);
 			debug(str + "" + name);
 		} else {
-			debug(pluginTag + " You have a error with you config file around: "
-					+ name + " we use default option.");
+			logger.info(lptext.getConsoleConfigError().replace("%ERROR%", name));
 		}
 		return str;
 	}
@@ -220,8 +213,7 @@ public class LoyaltyPoints extends JavaPlugin {
 			str = config.getInt(name);
 			debug(str + "" + name);
 		} else {
-			debug(pluginTag + " You have a error with you config file around: "
-					+ name + " we use default option.");
+			logger.info(lptext.getConsoleConfigError().replace("%ERROR%", name));
 		}
 		return str;
 	}
@@ -254,29 +246,14 @@ public class LoyaltyPoints extends JavaPlugin {
 			SaveTimer = check;
 		}
 
-		checkString = checkStringVariable("plugin-tag");
-		if (!checkString.isEmpty()) {
-			pluginTag = colorize(checkString);
-		}
-
-		checkString = checkStringVariable("self-check-message");
-		if (!checkString.isEmpty()) {
-			selfcheckMessage = colorize(checkString.replaceAll("%TAG%",
-					pluginTag));
-		}
-
-		checkString = checkStringVariable("check-otherplayer-message");
-		if (!checkString.isEmpty()) {
-			selfcheckMessage = colorize(checkString.replaceAll("%TAG%",
-					pluginTag));
-		}
+		
 
 		if (!config.contains("afk-tracking-system")) {
 			config.set("afk-tracking-system", 1);
 			try {
 				config.save(new File(this.getDataFolder(), "config.yml"));
 			} catch (final IOException e) {
-				debug("ERROR while loading saving variable");
+				debug(lptext.getConsoleConfigSaveError());
 			}
 		} else {
 			final int gettedValue = config.getInt("afk-tracking-system");
@@ -300,8 +277,7 @@ public class LoyaltyPoints extends JavaPlugin {
 			pointType = check;
 		}
 		if (pointType == 2) {
-			sqlite = new SQLite(this.getLogger(), pluginTag, "lp", this
-					.getDataFolder().toString());
+			sqlite = new SQLite(logger, lptext.getPluginTag(), "lp", getDataFolder().toString());
 
 		} else if (pointType == 3) {
 			// if it's mysql
@@ -338,13 +314,11 @@ public class LoyaltyPoints extends JavaPlugin {
 
 			}
 			if (miss.length() < 3) {
-				mysql = new MySQL(this.getLogger(), pluginTag, mysql_host,
+				mysql = new MySQL(this.getLogger(), lptext.getPluginTag(), mysql_host,
 						mysql_port, mysql_database, mysql_user, mysql_pass);
 				mysql.open();
 			} else {
-				logger.warning(pluginTag
-						+ "We have a error with the following mysql things:"
-						+ miss);
+				logger.warning(lptext.getConsoleMysqlError().replace("%MYSQLERROR%", miss));
 				setEnabled(false);
 			}
 		}
@@ -364,8 +338,7 @@ public class LoyaltyPoints extends JavaPlugin {
 			} else if (pointType == 1) {
 				kickStartFile(player);
 			} else {
-				logger.info("LoyaltyPoints You PointType " + pointType
-						+ " isn't Valid");
+				logger.info(lptext.getConsolePointTypeError());
 			}
 
 		}
@@ -375,11 +348,47 @@ public class LoyaltyPoints extends JavaPlugin {
 	private void kickStartSQL(final String player) { // gets the users elements
 														// and if
 		// new creates him
-
+		if(!loadSQLUser(player)){
+			
+		
 		users.put(player, new LPUser(this, player, startingPoints, 0, 0,
 				new Date().getTime()));
+		
+		}
 		debug("NEW USER INSERTED" + player);
 
+	}
+
+	private boolean loadSQLUser(String playerName) {
+		final String sql1 = "SELECT count(*) as c, username, point, totaltime, time FROM users WHERE username =\""+ playerName + "\"";
+		ResultSet rs = null;
+		if(pointType == 2){ //sqlite
+			 rs = sqlite.query(sql1);
+		}else if(pointType == 3){
+			rs = mysql.query(sql1);
+		}
+		int c = 0;
+		try {
+			rs.next();
+			c = rs.getInt("c");
+			debug("before rs.next " + c);
+			debug("user insert" + rs.getString("username"));
+			if(c != 0){
+			users.put(
+					rs.getString("username"),
+					new LPUser(this, rs.getString("username"), rs
+							.getInt("point"), rs.getInt("time"), rs
+							.getInt("totaltime"), new Date().getTime()));
+			}
+			rs.close();
+		
+		} catch (final SQLException e) {
+
+			e.printStackTrace();
+		}
+		
+		
+		return false;
 	}
 
 	private void kickStartFile(final String player) { // gets the users elements
@@ -387,23 +396,10 @@ public class LoyaltyPoints extends JavaPlugin {
 		// if new creates him
 		if (!LPFM.load(player)) { // if player dont excists
 			// we put starting points, TotalTime, and time since last point
-			users.put(player, new LPUser(this, player, startingPoints, 0, 0,
-					new Date().getTime()));
-			debug("NEW USER INSERTED" + player);
+			users.put(player, new LPUser(this, player, startingPoints, 0, 0, new Date().getTime()));
 		}
-		debug(users.get(player).getTime() + "");
 	}
-
-	public String colorize(final String message) {
-		return message.replaceAll("&([a-f0-9])", ChatColor.COLOR_CHAR + "$1");
-	}
-
-	public int getTimeLeft(final String player) {
-		// return (int) (getCycleNumber()-(((new
-		// Date().getTime()-users.get(player).getTimeComparison())/1000)+users.get(player).getTime()));
-		return users.get(player).getTimeLeft();
-	}
-
+	
 	public String getNiceNumber(int millsec) {
 		String str = "";
 		int g = 0;
@@ -497,14 +493,12 @@ public class LoyaltyPoints extends JavaPlugin {
 	 */
 
 	private void checkConfig() {
-		debug("hmm checkconfig");
 		final String name = "config.yml";
 		final File actual = new File(getDataFolder(), name);
 		if (!actual.exists()) {
 
 			getDataFolder().mkdir();
-			final InputStream input = this.getClass().getResourceAsStream(
-					"/defaults/config.yml");
+			final InputStream input = this.getClass().getResourceAsStream("/defaults/config.yml");
 			if (input != null) {
 				FileOutputStream output = null;
 
@@ -515,9 +509,7 @@ public class LoyaltyPoints extends JavaPlugin {
 					while ((length = input.read(buf)) > 0) {
 						output.write(buf, 0, length);
 					}
-					this.logger
-							.info("[LoyaltyPoints] Default configuration file written: "
-									+ name);
+					this.logger.info("[LoyaltyPoints] Default configuration file written: "	+ name); // TODO: this
 				} catch (final IOException e) {
 					e.printStackTrace();
 				} finally {
@@ -549,12 +541,10 @@ public class LoyaltyPoints extends JavaPlugin {
 		return updateTimer;
 	}
 
-	public void debug(final String txt) {
-
-		if (debug == 1) {
+	public void debug(String txt) {
+		if(debug == 1){
 			System.out.println(txt);
 		}
-
 	}
 
 	public void startUpdateCheck() {
@@ -563,11 +553,11 @@ public class LoyaltyPoints extends JavaPlugin {
 		getNewestVersion();
 
 		if (!upToDate()) {
-			this.logger.info(colorize(pluginTag)
-					+ " is not up to date, the new version:" + newVersion);
+			logger.info("------------");
+			logger.warning(lptext.getPluginNotUpToDate());
+			logger.info("------------");
 		} else {
-			this.logger.info(colorize(pluginTag)
-					+ " the plugin is up to date...");
+			logger.info(lptext.getPluginUpToDate());
 		}
 	}
 
@@ -590,7 +580,7 @@ public class LoyaltyPoints extends JavaPlugin {
 						+ ".totalTime");
 				final LPUser user = new LPUser(this, playerName, points, time,
 						totalTime, new Date().getTime());
-				final String sql1 = "SELECT count(*) as c FROM  users WHERE username=\""
+				final String sql1 = "SELECT <(*) as c FROM  users WHERE username=\""
 						+ playerName + "\"";
 				debug(sql1);
 				final ResultSet rs = sqlite.query(sql1);
@@ -659,16 +649,13 @@ public class LoyaltyPoints extends JavaPlugin {
 			}
 		}
 
-		logger.info(pluginTag + "the transform to sql is done we moved "
-				+ total + " users");
+		logger.info(lptext.getTransformAmount().replace("%TOTAL%", total+""));
 
 	}
 
 	public void getNewestVersion() {
-
 		try {
-			final URL url = new URL(
-					"https://raw.github.com/franzmedia/LoyaltyPoints/master/version.txt");
+			final URL url = new URL("https://raw.github.com/franzmedia/LoyaltyPoints/master/version.txt");
 			final URLConnection connection = url.openConnection();
 			final BufferedReader in = new BufferedReader(new InputStreamReader(
 					connection.getInputStream()));
@@ -679,13 +666,9 @@ public class LoyaltyPoints extends JavaPlugin {
 
 			in.close();
 		} catch (final MalformedURLException e) {
-			this.logger
-					.warning(pluginTag
-							+ " there was a error while loading the newest version! Code MURLE");
+			logger.warning(lptext.getErrorLoadingNewVersion());
 		} catch (final IOException e) {
-			this.logger
-					.warning(pluginTag
-							+ " there was a error while loading the newest version! Code: IO");
+			logger.warning(lptext.getErrorLoadingNewVersion());
 		}
 	}
 
@@ -735,6 +718,8 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	public void save() {
 		if (pointType == 2 || pointType == 3) {
+			
+			checkConnection();
 			checkTable();
 
 			for (final LPUser user : users.values()) {
@@ -789,9 +774,7 @@ public class LoyaltyPoints extends JavaPlugin {
 				}
 
 			}
-		} else {
-			getLogger().info(pointType + "");
-		}
+		} 
 	}
 
 	private void checkTable() {
@@ -828,6 +811,20 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	public boolean AfkTrackingSystem() {
 		return afkTrackingSystem;
+	}
+	
+	
+	public void checkConnection(){
+		
+		if(pointType== 3){
+			if(!mysql.checkConnection()){
+				mysql.open();
+			}
+		}else if(pointType == 2){
+			
+		}
+		
+		
 	}
 
 }

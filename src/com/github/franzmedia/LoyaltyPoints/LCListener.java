@@ -61,22 +61,28 @@ public class LCListener implements Listener {
 	public void onPlayerMove(final PlayerMoveEvent event) {
 		// permission check
 		if (event.getPlayer().hasPermission("loyaltypoints.general")) {
+			plugin.kickStart(event.getPlayer().getName());
 			if (AFKTrack) {
 				final LPUser user = plugin.getUsers().get(
 						event.getPlayer().getName());
 				final Player now = event.getPlayer();
+				try{
+					
+				
 				final int xdif = user.getLocation().getBlockX()-now.getLocation().getBlockX();
 				final int ydif = user.getLocation().getBlockY()-now.getLocation().getBlockY();
 				final int zdif = user.getLocation().getBlockZ()-now.getLocation().getBlockZ();
-
 				if (xdif >= 1 || xdif <= -1 || ydif >= 2 || ydif <= -2
 						|| zdif >= 1 || zdif <= -1) {
 					user.setLocation(event.getPlayer().getLocation());
 					if (!user.getMoved()) {
-						event.getPlayer().sendMessage("moved");
 						user.setMoved(true);
 					}
 				}
+				}catch(Exception io){
+					user.setLocation(event.getPlayer().getLocation());
+				}
+				
 			}
 		}
 	}

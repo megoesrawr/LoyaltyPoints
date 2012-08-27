@@ -22,7 +22,7 @@ public class LPScheduler implements Runnable {
 
 	@Override
 	public void run() {
-
+		plugin.debug("running schedular");
 		final Long now = new Date().getTime();
 		// Run once for every online player!
 		for (final Player player : plugin.getServer().getOnlinePlayers()) {

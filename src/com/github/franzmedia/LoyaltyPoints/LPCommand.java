@@ -21,52 +21,42 @@ import org.bukkit.entity.Player;
 
 public class LPCommand implements CommandExecutor {
 	private final LoyaltyPoints plugin;
+	private LPTexts lptext;
 
-	public LPCommand(final LoyaltyPoints plugin) {
+	public LPCommand(final LoyaltyPoints plugin, LPTexts lptexts) {
 		this.plugin = plugin;
+		lptext = lptexts;
 	}
 
 	@Override
 	public boolean onCommand(final CommandSender sender, final Command cmd,
 			final String zhf, final String[] args) {
-		final String playerName = sender.getName();
+		String playerName = sender.getName();
 		// permission check
 		if (sender.hasPermission("loyaltypoints.general")) {
 			if (args.length == 0) {
 				if (sender instanceof Player) {
 					if (sender.hasPermission("loyaltypoints.check.self")) {
-						sender.sendMessage(plugin.selfcheckMessage.replaceAll(
-								"%PLAYERNAME%", playerName).replaceAll(
-								"%POINTS%",
-								String.valueOf(plugin.getUsers()
-										.get(playerName).getPoint())));
-					} else {
-						plugin.debug("tesxt else");
+						sender.sendMessage(lptext.getSelfcheckMessage().replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%", plugin.getUsers().get(playerName).getPoint()+""));
 					}
 
 				} else {
-					sender.sendMessage(plugin.consoleCheck);
-
+					sender.sendMessage(lptext.getConsoleCheck());
 				}
 			} else {
 				if (args[0].equalsIgnoreCase("toSQL")) {
 					if (sender instanceof Player) {
 					} else {
-						sender.sendMessage(plugin.pluginTag
-								+ " We are now moving your file browsers to SQLite/mysql (this may take a while, please wait!");
+						sender.sendMessage(lptext.getToMySQL());
 						plugin.transformToSQL();
-
 					}
 				} else if (args[0].equalsIgnoreCase("add")) {
 
 					if (sender instanceof Player) {
 						if (sender.hasPermission("loyaltypoints.add")) {
-
 							add(sender, args);
 						} else {
-
-							sender.sendMessage(plugin.pluginTag + ChatColor.RED
-									+ " You dont have access to this command");
+							sender.sendMessage(lptext.getAddToUser());
 						}
 
 					} else {
@@ -102,7 +92,7 @@ public class LPCommand implements CommandExecutor {
 						/* NEXT COMMAND */
 						next(sender);
 					} else { // is cmd
-						sender.sendMessage(plugin.consoleCheck);
+						sender.sendMessage(lptext.getConsoleCheck());
 
 					}
 				} else if ((args[0].equalsIgnoreCase("playtime") || args[0]
@@ -113,7 +103,7 @@ public class LPCommand implements CommandExecutor {
 
 						playtime(sender, args);
 					} else { // is cmd
-						sender.sendMessage(plugin.consoleCheck);
+						sender.sendMessage(lptext.getConsoleCheck());
 
 					}
 
@@ -124,7 +114,8 @@ public class LPCommand implements CommandExecutor {
 						final Player trick = Bukkit.getPlayer(args[0]);
 						if (trick != null) {
 							final String other1 = trick.getName();
-							sender.sendMessage(plugin.checkotherMessage
+							sender.sendMessage(lptext
+									.getCheckotherMessage()
 									.replaceAll("%PLAYERNAME%", other1)
 									.replaceAll(
 											"%POINTS%",
@@ -133,7 +124,8 @@ public class LPCommand implements CommandExecutor {
 
 						} else {
 							if (plugin.getUsers().containsKey(args[0])) {
-								sender.sendMessage(plugin.checkotherMessage
+								sender.sendMessage(lptext
+										.getCheckotherMessage()
 										.replaceAll("%PLAYERNAME%", args[0])
 										.replaceAll(
 												"%POINTS%",
@@ -143,16 +135,12 @@ public class LPCommand implements CommandExecutor {
 														.getPoint())));
 
 							} else {
-								sender.sendMessage(plugin.pluginTag
-										+ ChatColor.WHITE
-										+ " Player not found.");
+								sender.sendMessage(lptext.getNoUser());
 
 							}
 						}
 					} else {
-						sender.sendMessage(plugin.pluginTag + ChatColor.WHITE
-								+ "You can't compare");
-
+						sender.sendMessage(lptext.getErrorPermission());
 					}
 				}
 			}
@@ -166,23 +154,25 @@ public class LPCommand implements CommandExecutor {
 		final int time = u.timeSinceLastRun() + u.getTotalTime();
 
 		final String daten = plugin.getNiceNumber(time);
-		sender.sendMessage(plugin.colorize(plugin.pluginTag
-				+ "&3 You have been online for &b" + daten));
+		sender.sendMessage(lptext.getOnlinetime().replaceAll("%ONLINETIME%", daten));
 
 	}
 
 	private void next(final CommandSender sender) {
-		plugin.debug("" + plugin.getTimeLeft(sender.getName()));
-		final int time = plugin.getTimeLeft(sender.getName());
+		
+		LPUser user = plugin.getUsers().get(sender.getName());
+		final int time = user.getTimeLeft();
 		String daten;
 		if (time >= 0) {
 			daten = plugin.getNiceNumber(time);
+			
+			sender.sendMessage(lptext.getNext().replaceAll("%TIME%", daten));
 		} else {
-			daten = "very soon";
+			user.givePoint();
+			next(sender);
 		}
 
-		sender.sendMessage(plugin.colorize(plugin.pluginTag
-				+ "&3 There are around &b" + daten + "&3 until next payout"));
+		
 
 	}
 
@@ -190,13 +180,10 @@ public class LPCommand implements CommandExecutor {
 		try {
 			plugin.getUsers().get(args[1])
 					.increasePoint(Integer.parseInt(args[2]));
-			sender.sendMessage(plugin.colorize(plugin.pluginTag
-					+ "&3 there have been added &b" + Integer.parseInt(args[2])
-					+ "&3 points to &b" + args[1]));
+			sender.sendMessage(lptext.getAddToUser().replaceAll("%POINT%", args[2]).replaceAll("%USER%", args[1]));
 
 		} catch (final Exception exception) {
-			sender.sendMessage(plugin.colorize(plugin.pluginTag
-					+ "It Looks like the user aren't found"));
+			sender.sendMessage(lptext.getErrorNoPlayer());
 		}
 
 	}
@@ -204,23 +191,19 @@ public class LPCommand implements CommandExecutor {
 	private void reload(final CommandSender sender) {
 		plugin.onDisable();
 		plugin.onEnable();
-		sender.sendMessage(plugin.colorize(plugin.pluginTag
-				+ " &3reloaded points data & configuration."));
+		sender.sendMessage(lptext.getReloadMsg());
 
 	}
 
 	private void version(final CommandSender sender) {
 
-		sender.sendMessage(plugin.colorize(plugin.pluginTag + "&3 version &b"
-				+ plugin.getDescription().getVersion()));
+		sender.sendMessage(lptext.getNowVersion().replaceAll("%VERSION%", plugin.getDescription().getVersion()));
 
 		if (sender.isOp()) {
 			plugin.getNewestVersion();
 
 			if (!plugin.upToDate()) {
-				sender.sendMessage(plugin.colorize(plugin.pluginTag
-						+ "&3 there are a newer version of LoyaltyPoints "
-						+ plugin.newVersion));
+				sender.sendMessage(lptext.getNewVersionAvalible().replaceAll("%NEWVERSION%", plugin.newVersion));
 
 			}
 
@@ -230,23 +213,18 @@ public class LPCommand implements CommandExecutor {
 	private void set(final CommandSender sender, final String[] args) {
 
 		if (args.length != 3) {
-			sender.sendMessage(plugin.colorize(plugin.pluginTag
-					+ " &3/lp set &b[username] [amount]"));
+			sender.sendMessage(lptext.getHelpSet());
 		} else if (!plugin.getUsers().containsKey(args[1])) {
-			sender.sendMessage(plugin.colorize(plugin.pluginTag
-					+ "&3 Player not found."));
+			sender.sendMessage(lptext.getErrorUnknownUser());
 
 		} else {
 
 			try {
 				final int amount = Integer.parseInt(args[2]);
 				plugin.getUsers().get(args[1]).setPoint(amount);
-				sender.sendMessage(plugin.colorize(plugin.pluginTag + "&3"
-						+ args[1] + "'s&b Loyalty Points was changed to &3"
-						+ amount));
+				sender.sendMessage(lptext.getNewSetAmount().replaceAll("%PLAYER%", args[1]).replaceAll("%AMOUNT%", amount+""));
 			} catch (final NumberFormatException e) {
-				sender.sendMessage(plugin.colorize(plugin.pluginTag
-						+ "&rNumber expected after &b/lp set [username]"));
+				sender.sendMessage(lptext.getErrorNumber() + "/lp set [username]");
 			}
 		}
 
@@ -259,8 +237,7 @@ public class LPCommand implements CommandExecutor {
 				maxTop = Integer.parseInt(args[1]);
 			} catch (final NumberFormatException nfe) { // if args contains
 														// other that integers.
-				sender.sendMessage(plugin.pluginTag + ChatColor.RED
-						+ "Number expected after /lp top");
+				sender.sendMessage(lptext.getErrorNumber() + " /lp top");
 			}
 		}
 
@@ -273,8 +250,7 @@ public class LPCommand implements CommandExecutor {
 		}
 
 		if (users.isEmpty()) {
-			sender.sendMessage(plugin.pluginTag + ChatColor.RED
-					+ " No players in record.");
+			sender.sendMessage(lptext.getErrorNoUsers());
 		}
 
 		Collections.sort(users, new PointsComparator());
