@@ -57,10 +57,17 @@ public class LPUser {
 		this.point = point;
 	}
 
-	public void increasePoint(final int point) {
-		this.point = this.point + point;
-	}
-
+	public boolean increasePoint(final int point) {
+			boolean rtnb;
+			if (point <= this.point) {
+				rtnb = true;
+				this.point = this.point + point;
+			} else {
+				rtnb = true;
+			}
+			return rtnb;
+			}
+	
 	public boolean removePoint(final int point) {
 		boolean rtnb;
 		if (point >= this.point) {
