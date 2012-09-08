@@ -37,7 +37,7 @@ public class LPCommand implements CommandExecutor {
 			if (args.length == 0) {
 				if (sender instanceof Player) {
 					if (sender.hasPermission("loyaltypoints.check.self")) {
-						sender.sendMessage(lptext.getSelfcheckMessage().replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%", plugin.getUsers().get(playerName).getPoint()+""));
+						sender.sendMessage(lptext.getSelfcheckMessage().replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%", plugin.getUser(playerName).getPoint()+""));
 					}
 
 				} else {
@@ -119,19 +119,17 @@ public class LPCommand implements CommandExecutor {
 									.replaceAll("%PLAYERNAME%", other1)
 									.replaceAll(
 											"%POINTS%",
-											String.valueOf(plugin.getUsers()
-													.get(other1).getPoint())));
+											String.valueOf(plugin.getUser(other1).getPoint())));
 
 						} else {
-							if (plugin.getUsers().containsKey(args[0])) {
+							if (plugin.areUser(args[0])) {
 								sender.sendMessage(lptext
 										.getCheckotherMessage()
 										.replaceAll("%PLAYERNAME%", args[0])
 										.replaceAll(
 												"%POINTS%",
 												String.valueOf(plugin
-														.getUsers()
-														.get(args[0])
+														.getUser(args[0])
 														.getPoint())));
 
 							} else {
@@ -150,8 +148,9 @@ public class LPCommand implements CommandExecutor {
 	}
 
 	private void playtime(final CommandSender sender, final String[] args) {
-		final LPUser u = plugin.getUsers().get(sender.getName());
-		final int time = u.timeSinceLastRun() + u.getTotalTime();
+
+		final LPUser user = plugin.getUser(sender.getName());
+		final int time = user.timeSinceLastRun() + user.getTotalTime();
 
 		final String daten = plugin.getNiceNumber(time);
 		sender.sendMessage(lptext.getOnlinetime().replaceAll("%ONLINETIME%", daten));
@@ -160,7 +159,7 @@ public class LPCommand implements CommandExecutor {
 
 	private void next(final CommandSender sender) {
 		
-		LPUser user = plugin.getUsers().get(sender.getName());
+		final LPUser user = plugin.getUser(sender.getName());
 		final int time = user.getTimeLeft();
 		String daten;
 		if (time >= 0) {
@@ -178,7 +177,7 @@ public class LPCommand implements CommandExecutor {
 
 	private void add(final CommandSender sender, final String[] args) {
 		try {
-			plugin.getUsers().get(args[1])
+			plugin.getUser(args[1])
 					.increasePoint(Integer.parseInt(args[2]));
 			sender.sendMessage(lptext.getAddToUser().replaceAll("%POINT%", args[2]).replaceAll("%USER%", args[1]));
 
@@ -203,7 +202,7 @@ public class LPCommand implements CommandExecutor {
 			plugin.getNewestVersion();
 
 			if (!plugin.upToDate()) {
-				sender.sendMessage(lptext.getNewVersionAvalible().replaceAll("%NEWVERSION%", plugin.newVersion));
+				sender.sendMessage(lptext.getNewVersionAvalible().replaceAll("%NEWVERSION%", plugin.getNewVersion()));
 
 			}
 
@@ -214,14 +213,14 @@ public class LPCommand implements CommandExecutor {
 
 		if (args.length != 3) {
 			sender.sendMessage(lptext.getHelpSet());
-		} else if (!plugin.getUsers().containsKey(args[1])) {
+		} else if (!plugin.areUser(args[1])) {
 			sender.sendMessage(lptext.getErrorUnknownUser());
 
 		} else {
 
 			try {
 				final int amount = Integer.parseInt(args[2]);
-				plugin.getUsers().get(args[1]).setPoint(amount);
+				plugin.getUser(args[1]).setPoint(amount);
 				sender.sendMessage(lptext.getNewSetAmount().replaceAll("%PLAYER%", args[1]).replaceAll("%AMOUNT%", amount+""));
 			} catch (final NumberFormatException e) {
 				sender.sendMessage(lptext.getErrorNumber() + "/lp set [username]");
@@ -242,11 +241,11 @@ public class LPCommand implements CommandExecutor {
 		}
 
 		final List<LPUser> users = new ArrayList<LPUser>();
-		final Iterator<String> it = plugin.getUsers().keySet().iterator();
+		final Iterator<String> it = plugin.getIteratorUser();
 
 		while (it.hasNext()) {
 			final String player = it.next();
-			users.add(plugin.getUsers().get(player));
+			users.add(plugin.getUser(player));
 		}
 
 		if (users.isEmpty()) {

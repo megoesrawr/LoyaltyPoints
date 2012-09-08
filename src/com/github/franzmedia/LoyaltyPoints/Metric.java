@@ -64,7 +64,7 @@ import org.bukkit.plugin.PluginDescriptionFile;
  * void start(); <br/>
  * </code>
  */
-public class Metrics {
+public class Metric {
 
     /**
      * The current revision number
@@ -137,7 +137,7 @@ public class Metrics {
      */
     private volatile int taskId = -1;
 
-    public Metrics(final Plugin plugin) throws IOException {
+    public Metric(final Plugin plugin) throws IOException {
         if (plugin == null) {
             throw new IllegalArgumentException("Plugin cannot be null");
         }

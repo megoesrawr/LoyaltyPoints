@@ -24,13 +24,15 @@ public class LPScheduler implements Runnable {
 	public void run() {
 		plugin.debug("running schedular");
 		final Long now = new Date().getTime();
+		
 		// Run once for every online player!
 		for (final Player player : plugin.getServer().getOnlinePlayers()) {
 			if (player.hasPermission("loyaltypoints.check.self")) {
-				plugin.getUsers().get(player.getName()).givePoint();
-			}
+				plugin.getUser(player.getName()).givePoint();
+			}	
 		}
 
+	
 		// if it's time to save to the database/file it does this here in a new
 		// thread.
 		if ((now - updateTimer) / 1000 >= plugin.getUpdateTimer()) {

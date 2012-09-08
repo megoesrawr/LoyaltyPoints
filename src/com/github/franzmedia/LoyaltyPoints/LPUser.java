@@ -105,17 +105,10 @@ public class LPUser {
 	}
 
 	public int timeSinceLastRun() {
-
-		final int sinceLast = (int) (new Date().getTime() - timeComparison) / 1000;
-		lp.debug("TIME SINCE LAST RUN:::: " + sinceLast);
-		return sinceLast;
+		return  (int) (new Date().getTime() - timeComparison) / 1000;
 	}
 
 	public int getTimeLeft() {
-		lp.debug("now: " + new Date().getTime() + " TC: " + timeComparison);
-		lp.debug("cycle: " + lp.getCycleNumber() + "date - timecompa"
-				+ (new Date().getTime() - timeComparison) + " time: "
-				+ getTime());
 		return lp.getCycleNumber() - timeSinceLastRun() - getTime();
 
 	}
@@ -123,27 +116,23 @@ public class LPUser {
 	public void givePoint() {
 		// IF AFK SYSTEM == ON
 		boolean go = true;
-		lp.debug(lp.AfkTrackingSystem() + " " + moved);
+		
 		if (lp.AfkTrackingSystem() && !moved) {
 			go = false;
 		}
 
 		if (go) {
-			final Long before = timeComparison;
-			final Long now = new Date().getTime();
-			final int rest = getTimeLeft();
-			final int diff = (int) ((now - before) / 1000);
-
-			if (rest <= 0) {
+			
+			if (getTimeLeft() <= 0) {
 				setPoint(point + lp.getIncrement());
-				time = 0 - rest;
+				time = 0 - getTimeLeft();
 			} else {
-				time = time + diff;
+				time = time + timeSinceLastRun();
 			}
 
-			totalTime = totalTime + diff;
+			totalTime = totalTime + timeSinceLastRun();
 			moved = false;
-			timeComparison = now;
+			timeComparison = new Date().getTime();;
 		}
 	}
 

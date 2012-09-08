@@ -28,9 +28,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
-
 import lib.PatPeter.SQLibrary.MySQL;
 import lib.PatPeter.SQLibrary.SQLite;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -50,7 +50,7 @@ public class LoyaltyPoints extends JavaPlugin {
 	private int debug = 0;
 	private boolean afkTrackingSystem = true;
 	private int pointType = 2;
-	public String newVersion, checkString = "";
+	private String newVersion, checkString = "";
 	private final Map<String, LPUser> users = new HashMap<String, LPUser>();
 
 	/* Mysql */
@@ -94,15 +94,16 @@ public class LoyaltyPoints extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		try {
-			Metrics metrics = new Metrics(this);
+			Metric metrics = new Metric(this);
 		    metrics.start();
 		} catch (IOException e) {
 		    // Failed to submit the stats :-(
 		}
 
-		lptext = new LPTexts();
+		lptext = new LPTexts(this);
 		checkConfig();
 		loadVariables();
+		lptext.loadText();
 		getServer().getScheduler().scheduleSyncDelayedTask(this,
 				new Runnable() {
 
@@ -707,9 +708,28 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	}
 
-	public Map<String, LPUser> getUsers() {
-		return users;
+	
+	public LPUser getUser(String username){
+	LPUser user = null;
+		if(areUser(username)){
+		user = users.get(username);
+	}else{
+		kickStart(username);
+		getUser(username);
+		
+	}	
+		return user;
+		
 	}
+	
+	public Iterator<String> getIteratorUser(){
+	
+	return users.keySet().iterator();
+	}
+	public boolean areUser(String username){
+		return users.containsKey(username);
+	}
+	
 
 	public boolean upToDate() {
 		boolean returnstr = false;
@@ -811,8 +831,6 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	public File getMapFile() {
 
-		mapFile = new File(this.getDataFolder(), "points.yml");
-
 		return mapFile;
 	}
 
@@ -834,4 +852,11 @@ public class LoyaltyPoints extends JavaPlugin {
 		
 	}
 
+	public Map<String, LPUser> getUsers() {
+		return users;
+	}
+
+	public String getNewVersion() {
+		return newVersion;
+	}
 }

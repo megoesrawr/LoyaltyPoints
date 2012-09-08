@@ -48,9 +48,18 @@ public class LPTexts {
 	 private String pluginUpToDate = "The plugin is up to date.";
 	 private String transformAmount = "the transform to sql is done we moved %TOTAL% users";
 	 private String errorLoadingNewVersion = "There was a Error while loading the newest version";
-	private String errorNoUsers = "There was no users in the record";
-
+	 private String errorNoUsers = "There was no users in the record";
+	private LoyaltyPoints plugin;
+		
+	 public LPTexts(LoyaltyPoints plugin){
+		 this.plugin = plugin;
+	 }
 	 
+	 
+		
+		
+		
+		
 	 
 	 private String finalize(String s,int i){
 		 if(i == 1){ //without COLORIZE
@@ -246,5 +255,19 @@ public class LPTexts {
 	
 	public String getErrorUnknownUser() {
 		return finalize(errorUnknownUser,2);
+	}
+
+
+
+
+
+
+
+	public void loadText() {
+		 checkotherMessage = plugin.checkStringVariable("check-otherplayer-message");
+		 pluginTag = plugin.checkStringVariable("plugin-tag");
+		 selfcheckMessage = plugin.checkStringVariable("self-check-message");
+		 System.out.println("success");
+		
 	}
 }

@@ -1,7 +1,11 @@
+### EDITED FOR 1.0.9
 # LoyaltyPoints config file
 
 # How many Loyalty Points should this plugin give after every time cycle?
 increment-per-cycle: 1
+
+#AFK Tracking system setup (1 for yes, 0 for no)
+afk-tracking-system: 1
 
 # How long should this time cycle be?
 # This is based on when the player logs on.
