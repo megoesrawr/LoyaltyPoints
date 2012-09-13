@@ -29,16 +29,15 @@ starting-points: 0
 
 # In-game chat tag of the plugin
 # Supports color codes: &a-f|0-9
-# Use %TAG% (case-sensitive) to reference this tag.
 plugin-tag: '&6[LoyaltyPoints]'
 
 # %PLAYERNAME% specifies the player name being checked.
 # %POINTS% specifies the amount of Loyalty Points the player has.
 # Message sent when checking your own Loyalty Points (fired using /lp)
-self-check-message: '%TAG% &3You have &b%POINTS% &3Loyalty Points.'
+self-check-message: '&3You have &b%POINTS% &3Loyalty Points.'
 # Message sent when checking another player's Loyalty Points (fired using /lp [playername])
 # e.g. /lp KasperFranz
-check-otherplayer-message: '%TAG% &3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.'
+check-otherplayer-message: '&3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.'
 
 
 # 1 if you want to use file based,

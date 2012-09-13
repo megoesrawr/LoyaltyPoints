@@ -336,34 +336,42 @@ public class LoyaltyPoints extends JavaPlugin {
 		// milestones.addAll(l);
 	}
 
-	public void kickStart(final String player) {
-
+	public LPUser kickStart(final String player) {
+LPUser user = null;
 		if (users.containsKey(player)) {
-			users.get(player).setTimeComparison(new Date().getTime());
+		user =	users.get(player);
+		user.setTimeComparison(new Date().getTime());
 		} else {
 			if (pointType == 3 || pointType == 2) {
-				kickStartSQL(player);
+				user = kickStartSQL(player);
 			} else if (pointType == 1) {
-				kickStartFile(player);
+			user =	kickStartFile(player);
 			} else {
-				logger.info(lptext.getConsolePointTypeError());
+				try {
+					throw new Exception(lptext.getConsolePointTypeError());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
 			}
 
 		}
+		return user;
 
 	}
 
-	private void kickStartSQL(final String player) { // gets the users elements
-														// and if
+	private LPUser kickStartSQL(final String player) { // gets the users elements
+		LPUser user = null;												// and if
 		// new creates him
 		if(!loadSQLUser(player)){
-			
+			user =  new LPUser(this, player, startingPoints, 0, 0,new Date().getTime());
 		
-		users.put(player, new LPUser(this, player, startingPoints, 0, 0,
-				new Date().getTime()));
+		users.put(player,user);
 		
 		}
 		debug("NEW USER INSERTED" + player);
+		return user;
 
 	}
 
@@ -399,13 +407,15 @@ public class LoyaltyPoints extends JavaPlugin {
 		return false;
 	}
 
-	private void kickStartFile(final String player) { // gets the users elements
-														// and
+	private LPUser kickStartFile(final String player) { // gets the users elements
+				LPUser user = null;										// and
 		// if new creates him
 		if (!LPFM.load(player)) { // if player dont excists
 			// we put starting points, TotalTime, and time since last point
-			users.put(player, new LPUser(this, player, startingPoints, 0, 0, new Date().getTime()));
+			user = new LPUser(this, player, startingPoints, 0, 0, new Date().getTime());
+			users.put(player, user);
 		}
+		return user;
 	}
 	
 	public String getNiceNumber(int millsec) {
@@ -714,8 +724,8 @@ public class LoyaltyPoints extends JavaPlugin {
 		if(areUser(username)){
 		user = users.get(username);
 	}else{
-		kickStart(username);
-		getUser(username);
+	user = kickStart(username);
+	
 		
 	}	
 		return user;

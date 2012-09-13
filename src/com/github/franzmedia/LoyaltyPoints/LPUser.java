@@ -18,6 +18,7 @@ public class LPUser {
 	private long timeComparison;
 	private final LoyaltyPoints lp;
 	private boolean online;
+	private boolean haveBeenOnline;
 	private boolean moved;
 	private Location location;
 
@@ -105,7 +106,9 @@ public class LPUser {
 	}
 
 	public int timeSinceLastRun() {
+		
 		return  (int) (new Date().getTime() - timeComparison) / 1000;
+		
 	}
 
 	public int getTimeLeft() {
@@ -153,6 +156,14 @@ public class LPUser {
 	public Location getLocation() {
 		return location;
 
+	}
+
+	public boolean isHaveBeenOnline() {
+		return haveBeenOnline;
+	}
+
+	public void setHaveBeenOnline(boolean haveBeenOnline) {
+		this.haveBeenOnline = haveBeenOnline;
 	}
 
 }

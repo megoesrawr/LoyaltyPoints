@@ -6,6 +6,8 @@
 
 package com.github.franzmedia.LoyaltyPoints;
 
+import java.util.Date;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -30,13 +32,13 @@ public class LCListener implements Listener {
 	public void Velociraptor(final PlayerJoinEvent event) {
 		// permission check
 		if (event.getPlayer().hasPermission("loyaltypoints.general")) {
+			plugin.getUser(event.getPlayer().getName());
 			final LPUser user = plugin.getUser(event.getPlayer().getName());
-			plugin.debug("PLayer kom ind:" + user.getTime() + " Starttid:"
-					+ user.getTimeComparison() + "starttime" + user.getTime()
-					+ "total " + user.getTotalTime());
+			user.setTimeComparison(new Date().getTime());
 			user.setOnline(true);
 			user.setLocation(event.getPlayer().getLocation());
 			user.setMoved(false);
+			user.setHaveBeenOnline(true);
 		}
 	}
 
@@ -46,7 +48,6 @@ public class LCListener implements Listener {
 		// permission check
 		if (event.getPlayer().hasPermission("loyaltypoints.general")) {
 			final LPUser user = plugin.getUser(event.getPlayer().getName());
-			plugin.debug("player logout" + user.getTime());
 			user.givePoint();
 			user.setOnline(false);
 			user.setTimeComparison(0);
