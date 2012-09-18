@@ -1,7 +1,7 @@
 /* 
  * AUTHOR: Kasper Franz
- * Loyalty Points 1.0.9
- * Last Changed: fixed the save error, and the Mysql error, added new config file and a new config index 
+ * Loyalty Points 1.1.3
+ * Last Changed: moved ALL with database to the databaseHandler 
  * 
  */
 
@@ -24,29 +24,25 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
-import lib.PatPeter.SQLibrary.MySQL;
-import lib.PatPeter.SQLibrary.SQLite;
+import com.github.franzmedia.LoyaltyPoints.Database.DatabaseHandler;
+
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class LoyaltyPoints extends JavaPlugin {
+	private DatabaseHandler database;
 	private final Logger logger = Logger.getLogger("Minecraft");
-	private SQLite sqlite;
-	private MySQL mysql;
-	private int status = 0;
 	private int increment = 1, cycleNumber = 600,
 			updateTimer = cycleNumber / 4, startingPoints = 0,
 			SaveTimer = 3600, check = -10, version, newestVersion;
+	
+
 	private int debug = 0;
 	private boolean afkTrackingSystem = true;
 	private int pointType = 2;
@@ -54,13 +50,12 @@ public class LoyaltyPoints extends JavaPlugin {
 	private final Map<String, LPUser> users = new HashMap<String, LPUser>();
 
 	/* Mysql */
-	private String mysql_host = null, mysql_port = "3306", mysql_user = null,
-			mysql_pass = null, mysql_database = null;
 	private FileConfiguration config;
 	private File mapFile;
-	private FileConfiguration mapFileConfig;
-	private LPFileManager LPFM;
+//	private FileConfiguration mapFileConfig;
+//	private LPFileManager LPFM;
 	private LPTexts lptext;
+
 	/* Messages EDITABLE */
 
 	// public List<String> milestones = new ArrayList<String>();
@@ -68,54 +63,43 @@ public class LoyaltyPoints extends JavaPlugin {
 	// List<Integer>>(); // For tracking rewards, etc.
 
 	// public static Economy economy = null;
-	// public boolean economyPresent = true;
-	@Override
-	public void onDisable() {
-
-		for (final Player players : getServer().getOnlinePlayers()) {
-			users.get(players.getName()).givePoint();
-		}
-
-		if (pointType == 1) {
-			LPFM.save();
-		} else {
-			save();
-			if (pointType == 2) {
-				sqlite.close();
-			} else {
-				mysql.close();
-			}
-
-		}
-		users.clear();
-		info(this.getDescription(), "disabled");
-	}
+	// public boolean economyPresent = true;3
 
 	@Override
 	public void onEnable() {
+		// Enable metrics (MCstats.org)
 		try {
 			Metric metrics = new Metric(this);
-		    metrics.start();
+			metrics.start();
 		} catch (IOException e) {
-		    // Failed to submit the stats :-(
+			// Failed to submit the stats :-(
 		}
 
+		// Getting the texts
 		lptext = new LPTexts(this);
-		checkConfig();
+
+		// loading the variables from the config!
 		loadVariables();
+
+		// loading the texts from the config!
 		lptext.loadText();
+
+		// loading the points !!!
 		getServer().getScheduler().scheduleSyncDelayedTask(this,
 				new Runnable() {
 
 					@Override
 					public void run() {
-						loadPointsData();
+						loadOnlineUsers();
 
 					}
 				});
 
+		// Setting up the listener (player login/logout & move)
 		this.getServer().getPluginManager()
 				.registerEvents(new LCListener(this), this);
+
+		// checking for a new version!
 		getServer().getScheduler().scheduleSyncDelayedTask(this,
 				new Runnable() {
 
@@ -124,110 +108,41 @@ public class LoyaltyPoints extends JavaPlugin {
 						startUpdateCheck();
 					}
 				});
-		getCommand("lp").setExecutor(new LPCommand(this,lptext));
+
+		// Commands setup!
+		getCommand("lp").setExecutor(new LPCommand(this, lptext));
+
+		// Telling the server we are up and running
 		info(getDescription(), "enabled");
 
-		/*
-		 * if (!setupEconomy()) {
-		 * this.logger.severe("[LoyaltyPoints] Vault dependency not found!"); th
-		 * .logger.severe("[LoyaltyPoints] Milestones paying feature disabled."
-		 * ); economyPresent = false; }
-		 */
+		// Making scheduler (giving points after the update timer)
 		getServer().getScheduler().scheduleAsyncRepeatingTask(this,
 				new LPScheduler(this), updateTimer, updateTimer);
-		for (final Player players : getServer().getOnlinePlayers()) {
-			kickStart(players.getName());
-			
-		}
-	}
 
-	public void loadPointsData() {
-		int usersCount = 0;
-
-		logger.info(lptext.getConsoleLoadingUser());
-		if (pointType == 2 || pointType == 3) {
-			status = 1;
-			checkConnection();
-			checkTable();
-			if (status == 1) {
-				final Long now = new Date().getTime();
-				ResultSet rs;
-				final String sql = "SELECT count(username) as c FROM users";
-				if (pointType == 2) {
-					rs = sqlite.query(sql);
-				} else {
-					rs = mysql.query(sql);
-				}
-
-				try {
-					rs.next();
-					usersCount = rs.getInt("c");
-					rs.close();
-					debug(usersCount + "");
-					final String sql1 = "SELECT * FROM users";
-					if (pointType == 2) {
-						rs = sqlite.query(sql1);
-					} else {
-						rs = mysql.query(sql1);
-					}
-					for (int i = 0; i < usersCount; i++) {
-						rs.next();
-						debug("user insert" + rs.getString("username"));
-						users.put(
-								rs.getString("username"),
-								new LPUser(this, rs.getString("username"), rs
-										.getInt("point"), rs.getInt("time"), rs
-										.getInt("totaltime"), now));
-					}
-					rs.close();
-				} catch (final SQLException e1) {
-					debug(lptext.getConsoleMysqlError());
-				}
-
-			}
-
-		} else if (pointType == 1) {
-			LPFM = new LPFileManager(this);
-			mapFile = new File(getDataFolder(), "points.yml");
-			mapFileConfig = YamlConfiguration.loadConfiguration(mapFile);
-			for (final String s : mapFileConfig.getKeys(false)) {
-				kickStartFile(s);
-				usersCount++;
-			}
-		} else {
-			logger.info(lptext.getConsolePointTypeError());
-
-		}
-		logger.info(lptext.getConsoleLoadingUserDone().replace("%TOTAL%", usersCount+""));
+		// Every player online on enable is kickstarted!
 		
-
 	}
 
-	public String checkStringVariable(final String name) {
-		String str = "";
-		if (config.contains(name)) {
-			str = config.getString(name);
-			debug(str + "" + name);
-		} else {
-			logger.info(lptext.getConsoleConfigError().replace("%ERROR%", name));
+
+	@Override
+	public void onDisable() {
+		
+		giveOnlineUsersPoints();
+		saveOnlineUsers();
+		users.clear();
+		info(this.getDescription(), "disabled");
+	}
+	
+	public void loadOnlineUsers() {
+		for (final Player player : getServer().getOnlinePlayers()) {
+			if(player.hasPermission("loyaltypoints.general")){
+				users.put(player.getName(), database.GetUser(player.getName()));
+			}
 		}
-		return str;
 	}
-
-	public int checkVariable(final String name) {
-		int str = -10;
-
-		if (config.contains(name)) {
-			str = config.getInt(name);
-			debug(str + "" + name);
-		} else {
-			logger.info(lptext.getConsoleConfigError().replace("%ERROR%", name));
-		}
-		return str;
-	}
-
+	
 	public void loadVariables() {
-
+		checkConfig();
 		config = this.getConfig();
 		check = checkVariable("increment-per-cycle");
 		if (check > 0) {
@@ -253,8 +168,6 @@ public class LoyaltyPoints extends JavaPlugin {
 		if (check > 0) {
 			SaveTimer = check;
 		}
-
-		
 
 		if (!config.contains("afk-tracking-system")) {
 			config.set("afk-tracking-system", 1);
@@ -284,12 +197,22 @@ public class LoyaltyPoints extends JavaPlugin {
 		if (check > 0) {
 			pointType = check;
 		}
-		if (pointType == 2) {
-			sqlite = new SQLite(logger, lptext.getPluginTag(), "lp", getDataFolder().toString());
-
-		} else if (pointType == 3) {
-			// if it's mysql
-
+		int type = 0;
+		switch (pointType) {
+		case 1:
+			logger.warning("you can't use File based any more, we are now loading SQlite instead");
+			type = 2;
+			break;
+		case 2:
+			type = 2;
+			break;
+		case 3:
+			type = 1;
+			break;
+		}
+		if (type == 1) {
+			 String mysql_host = null, mysql_port = "3306", mysql_user = null,
+					mysql_pass = null, mysql_database = null;
 			String miss = "";
 			checkString = checkStringVariable("mysql-host");
 			if (!checkString.isEmpty()) {
@@ -322,102 +245,52 @@ public class LoyaltyPoints extends JavaPlugin {
 
 			}
 			if (miss.length() < 3) {
-				mysql = new MySQL(this.getLogger(), lptext.getPluginTag(), mysql_host,
+				database = new DatabaseHandler(this, logger, type, mysql_host,
 						mysql_port, mysql_database, mysql_user, mysql_pass);
-				mysql.open();
 			} else {
-				logger.warning(lptext.getConsoleMysqlError().replace("%MYSQLERROR%", miss));
+				logger.warning(lptext.getConsoleMysqlError().replace(
+						"%MYSQLERROR%", miss));
 				setEnabled(false);
 			}
+
+		}else{
+			database = new DatabaseHandler(this, logger, type, null,
+					null, null, null, null);
 		}
-		// ConfigurationSection milestonesCS =
-		// config.getConfigurationSection("points-milestones.Amounts");
-		// List<String> l = new ArrayList<String>(milestonesCS.getKeys(false));
-		// milestones.addAll(l);
-	}
-
-	public LPUser kickStart(final String player) {
-LPUser user = null;
-		if (users.containsKey(player)) {
-		user =	users.get(player);
-		user.setTimeComparison(new Date().getTime());
-		} else {
-			if (pointType == 3 || pointType == 2) {
-				user = kickStartSQL(player);
-			} else if (pointType == 1) {
-			user =	kickStartFile(player);
-			} else {
-				try {
-					throw new Exception(lptext.getConsolePointTypeError());
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-			}
-
-		}
-		return user;
-
-	}
-
-	private LPUser kickStartSQL(final String player) { // gets the users elements
-		LPUser user = null;												// and if
-		// new creates him
-		if(!loadSQLUser(player)){
-			user =  new LPUser(this, player, startingPoints, 0, 0,new Date().getTime());
-		
-		users.put(player,user);
-		
-		}
-		debug("NEW USER INSERTED" + player);
-		return user;
-
-	}
-
-	private boolean loadSQLUser(String playerName) {
-		final String sql1 = "SELECT count(*) as c, username, point, totaltime, time FROM users WHERE username =\""+ playerName + "\"";
-		ResultSet rs = null;
-		if(pointType == 2){ //sqlite
-			 rs = sqlite.query(sql1);
-		}else if(pointType == 3){
-			rs = mysql.query(sql1);
-		}
-		int c = 0;
-		try {
-			rs.next();
-			c = rs.getInt("c");
-			debug("before rs.next " + c);
-			debug("user insert" + rs.getString("username"));
-			if(c != 0){
-			users.put(
-					rs.getString("username"),
-					new LPUser(this, rs.getString("username"), rs
-							.getInt("point"), rs.getInt("time"), rs
-							.getInt("totaltime"), new Date().getTime()));
-			}
-			rs.close();
-		
-		} catch (final SQLException e) {
-
-			e.printStackTrace();
-		}
-		
-		
-		return false;
-	}
-
-	private LPUser kickStartFile(final String player) { // gets the users elements
-				LPUser user = null;										// and
-		// if new creates him
-		if (!LPFM.load(player)) { // if player dont excists
-			// we put starting points, TotalTime, and time since last point
-			user = new LPUser(this, player, startingPoints, 0, 0, new Date().getTime());
-			users.put(player, user);
-		}
-		return user;
 	}
 	
+	
+
+	public DatabaseHandler getDBHandler() {
+		return database;
+	}
+
+	
+	public String checkStringVariable(final String name) {
+		String str = "";
+		if (config.contains(name)) {
+			str = config.getString(name);
+			debug(str + "" + name);
+		} else {
+			logger.info(lptext.getConsoleConfigError().replace("%ERROR%", name));
+		}
+		return str;
+	}
+
+	public int checkVariable(final String name) {
+		int str = -10;
+
+		if (config.contains(name)) {
+			str = config.getInt(name);
+			debug(str + "" + name);
+		} else {
+			logger.info(lptext.getConsoleConfigError().replace("%ERROR%", name));
+		}
+		return str;
+	}
+
+	
+
 	public String getNiceNumber(int millsec) {
 		String str = "";
 		int g = 0;
@@ -516,7 +389,8 @@ LPUser user = null;
 		if (!actual.exists()) {
 
 			getDataFolder().mkdir();
-			final InputStream input = this.getClass().getResourceAsStream("/defaults/config.yml");
+			final InputStream input = this.getClass().getResourceAsStream(
+					"/defaults/config.yml");
 			if (input != null) {
 				FileOutputStream output = null;
 
@@ -527,7 +401,9 @@ LPUser user = null;
 					while ((length = input.read(buf)) > 0) {
 						output.write(buf, 0, length);
 					}
-					this.logger.info("[LoyaltyPoints] Default configuration file written: "	+ name); // TODO: this
+					this.logger
+							.info("[LoyaltyPoints] Default configuration file written: "
+									+ name); // TODO: this
 				} catch (final IOException e) {
 					e.printStackTrace();
 				} finally {
@@ -546,6 +422,12 @@ LPUser user = null;
 			}
 		}
 	}
+	
+	public void removeUser(LPUser user){
+		
+		database.saveUser(user);
+		users.remove(user.getName());
+	}
 
 	public int getCycleNumber() {
 		return cycleNumber;
@@ -560,7 +442,7 @@ LPUser user = null;
 	}
 
 	public void debug(String txt) {
-		if(debug == 1){
+		if (debug == 1) {
 			System.out.println(txt);
 		}
 	}
@@ -579,101 +461,12 @@ LPUser user = null;
 		}
 	}
 
-	public void transformToSQL() {
-		int total = 0;
-
-		debug("type:" + pointType);
-		if (pointType == 2) {
-			debug(!sqlite.checkConnection() + " conn");
-			debug("check" + sqlite.checkTable("users"));
-			checkTable();
-
-			mapFileConfig = YamlConfiguration.loadConfiguration(new File(
-					getDataFolder(), "points.yml"));
-			for (final String playerName : mapFileConfig.getKeys(false)) {
-				final int points = mapFileConfig.getInt(playerName + ".points");
-				int time = 0;
-				time = mapFileConfig.getInt(playerName + ".time");
-				final int totalTime = mapFileConfig.getInt(playerName
-						+ ".totalTime");
-				final LPUser user = new LPUser(this, playerName, points, time,
-						totalTime, new Date().getTime());
-				final String sql1 = "SELECT <(*) as c FROM  users WHERE username=\""
-						+ playerName + "\"";
-				debug(sql1);
-				final ResultSet rs = sqlite.query(sql1);
-				int c = 0;
-				try {
-					rs.next();
-					c = rs.getInt("c");
-					debug("before rs.next Count: " + c);
-					rs.close();
-				} catch (final SQLException e) {
-
-					e.printStackTrace();
-				}
-
-				if (c == 0) {
-
-					sqlite.query("INSERT INTO users VALUES (\""
-							+ user.getName() + "\"," + "\"" + user.getPoint()
-							+ "\",\"" + user.getTime() + "\",\""
-							+ user.getTotalTime() + "\")");
-
-					total++;
-				}
-				users.put(playerName, user);
-			}
-
-		} else if (pointType == 3) {
-			debug("point type 3:");
-			checkTable();
-
-			mapFileConfig = YamlConfiguration.loadConfiguration(new File(
-					getDataFolder(), "points.yml"));
-			for (final String playerName : mapFileConfig.getKeys(false)) {
-				final int points = mapFileConfig.getInt(playerName + ".points");
-				int time = 0;
-				time = mapFileConfig.getInt(playerName + ".time");
-				final int totalTime = mapFileConfig.getInt(playerName
-						+ ".totalTime");
-				final LPUser user = new LPUser(this, playerName, points, time,
-						totalTime, new Date().getTime());
-				final String sql1 = "SELECT count(*) as c FROM  users WHERE username=\""
-						+ playerName + "\"";
-				debug(sql1);
-				final ResultSet rs = mysql.query(sql1);
-				int c = 0;
-				try {
-					rs.next();
-					c = rs.getInt("c");
-					debug("before rs.next " + c);
-					rs.close();
-				} catch (final SQLException e) {
-
-					e.printStackTrace();
-				}
-
-				if (c == 0) {
-
-					mysql.query("INSERT INTO users VALUES (\"" + user.getName()
-							+ "\",\"" + user.getPoint() + "\",\""
-							+ user.getTime() + "\",\"" + user.getTotalTime()
-							+ "\")");
-
-					total++;
-				}
-				users.put(playerName, user);
-			}
-		}
-
-		logger.info(lptext.getTransformAmount().replace("%TOTAL%", total+""));
-
-	}
+	
 
 	public void getNewestVersion() {
 		try {
-			final URL url = new URL("https://raw.github.com/franzmedia/LoyaltyPoints/master/version.txt");
+			final URL url = new URL(
+					"https://raw.github.com/franzmedia/LoyaltyPoints/master/version.txt");
 			final URLConnection connection = url.openConnection();
 			final BufferedReader in = new BufferedReader(new InputStreamReader(
 					connection.getInputStream()));
@@ -718,28 +511,21 @@ LPUser user = null;
 
 	}
 
-	
-	public LPUser getUser(String username){
-	LPUser user = null;
-		if(areUser(username)){
-		user = users.get(username);
-	}else{
-	user = kickStart(username);
-	
-		
-	}	
+	public LPUser getUser(String username) {
+		LPUser user = null;
+		if (areUser(username)) {
+			user = users.get(username);
+		} else {
+			user = database.GetUser(username);
+		}
 		return user;
-		
+
 	}
-	
-	public Iterator<String> getIteratorUser(){
-	
-	return users.keySet().iterator();
-	}
-	public boolean areUser(String username){
+
+
+	public boolean areUser(String username) {
 		return users.containsKey(username);
 	}
-	
 
 	public boolean upToDate() {
 		boolean returnstr = false;
@@ -752,91 +538,22 @@ LPUser user = null;
 
 		return returnstr;
 	}
-
-	public void save() {
-		if (pointType == 2 || pointType == 3) {
+	
+	public void giveOnlineUsersPoints(){
+		
+		Iterator<String> u = users.keySet().iterator();
+		while(u.hasNext()){
+			users.get(u.next()).givePoint();
 			
-			checkConnection();
-			checkTable();
-
-			for (final LPUser user : users.values()) {
-				debug(user.getName());
-
-				try {
-					final String sql1 = "SELECT count(*) as c FROM  users WHERE username=\""
-							+ user.getName() + "\"";
-					debug(sql1);
-					ResultSet rs;
-					if (pointType == 2) {
-						rs = sqlite.query(sql1);
-					} else {
-						rs = mysql.query(sql1);
-					}
-					rs.next();
-					final int c = rs.getInt("c");
-					debug("before rs.next " + c);
-					rs.close();
-					if (c != 0) {
-						final String sql = "UPDATE users SET point = \""
-								+ user.getPoint() + "\", " + "time = \""
-								+ user.getTime() + "\", " + "totaltime = \""
-								+ user.getTotalTime()
-								+ "\" WHERE username = \"" + user.getName()
-								+ "\"";
-						debug("sql kode for " + user.getName() + "  " + sql);
-						if (pointType == 2) {
-							rs = sqlite.query(sql);
-						} else {
-							rs = mysql.query(sql);
-						}
-
-					} else {
-						final String sql = "INSERT INTO users VALUES (\""
-								+ user.getName() + "\",\"" + user.getPoint()
-								+ "\"" + ",\"" + user.getTotalTime() + "\",\""
-								+ user.getTime() + "\")";
-						debug("else");
-						if (pointType == 2) {
-							rs = sqlite.query(sql);
-						} else {
-							rs = mysql.query(sql);
-						}
-
-					}
-
-				} catch (final SQLException e) {
-
-					e.printStackTrace();
-					debug(e.getSQLState());
-				}
-
-			}
-		} 
-	}
-
-	private void checkTable() {
-		if (pointType == 2) {
-			debug("SQLITE" + sqlite.checkTable("users"));
-			if (!sqlite.checkTable("users")) {
-				status = 0;
-
-				sqlite.createTable("CREATE TABLE users"
-						+ "( 	username varchar(16) NOT NULL PRIMARY KEY,"
-						+ "	point	 int(16)," + "	totaltime int(25),"
-						+ "	time		int(10))");
-				debug("SQLITE" + sqlite.checkTable("users"));
-			}
-		} else if (pointType == 3) {
-			if (!mysql.checkTable("users")) {
-				status = 0;
-				mysql.createTable("CREATE TABLE users"
-						+ "( 	username varchar(16) NOT NULL,"
-						+ "	point	 int(16)," + "	totaltime int(25),"
-						+ "	time		int(10), " + " primary key (username)"
-						+ ")engine = innodb; ");
-
-			}
 		}
+	}
+	public void saveOnlineUsers() {
+		LPUser[] savingUsers = new LPUser[users.size()];
+		Iterator<String> u = users.keySet().iterator();
+		for(int i = 0;u.hasNext();i++){
+			savingUsers[i] = users.get(u.next());
+		}
+		database.saveUsers(savingUsers);
 	}
 
 	public File getMapFile() {
@@ -847,20 +564,7 @@ LPUser user = null;
 	public boolean AfkTrackingSystem() {
 		return afkTrackingSystem;
 	}
-	
-	
-	public void checkConnection(){
-		
-		if(pointType== 3){
-			if(!mysql.checkConnection()){
-				mysql.open();
-			}
-		}else if(pointType == 2){
-			
-		}
-		
-		
-	}
+
 
 	public Map<String, LPUser> getUsers() {
 		return users;
@@ -868,5 +572,14 @@ LPUser user = null;
 
 	public String getNewVersion() {
 		return newVersion;
+	}
+	public int getStartingPoints() {
+		return startingPoints;
+	}
+
+
+	public void loadUser(String name) {
+		users.put(name, database.GetUser(name));
+		
 	}
 }

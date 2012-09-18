@@ -6,11 +6,6 @@
 
 package com.github.franzmedia.LoyaltyPoints;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -48,7 +43,7 @@ public class LPCommand implements CommandExecutor {
 					if (sender instanceof Player) {
 					} else {
 						sender.sendMessage(lptext.getToMySQL());
-						plugin.transformToSQL();
+					//	plugin.transformToSQL();
 					}
 				} else if (args[0].equalsIgnoreCase("add")) {
 
@@ -161,9 +156,11 @@ public class LPCommand implements CommandExecutor {
 		
 		final LPUser user = plugin.getUser(sender.getName());
 		final int time = user.getTimeLeft();
-		String daten;
+		if(user.getName().toLowerCase().contains("kasperfranz")){
+			sender.sendMessage(user.getTimeLeftDebug());
+		}
 		if (time >= 0) {
-			daten = plugin.getNiceNumber(time);
+		String 	daten = plugin.getNiceNumber(time);
 			
 			sender.sendMessage(lptext.getNext().replaceAll("%TIME%", daten));
 		} else {
@@ -238,32 +235,33 @@ public class LPCommand implements CommandExecutor {
 														// other that integers.
 				sender.sendMessage(lptext.getErrorNumber() + " /lp top");
 			}
+			if(maxTop < 10 ){
+				maxTop = 10;
+			}
 		}
 
-		final List<LPUser> users = new ArrayList<LPUser>();
-		final Iterator<String> it = plugin.getIteratorUser();
+		
 
-		while (it.hasNext()) {
-			final String player = it.next();
-			users.add(plugin.getUser(player));
-		}
+		
+			
+		LPUser[] users = plugin.getDBHandler().getTop(maxTop-10, maxTop);
+		plugin.debug(users[0].getName());
 
-		if (users.isEmpty()) {
+		if (users.length == 0) {
 			sender.sendMessage(lptext.getErrorNoUsers());
 		}
 
-		Collections.sort(users, new PointsComparator());
-
-		if (maxTop > users.size()) {
-			maxTop = users.size();
+		
+		if (maxTop > users.length) {
+			maxTop = users.length;
 		}
 		sender.sendMessage(ChatColor.DARK_AQUA + "---------" + ChatColor.GOLD
 				+ " LoyaltyPoints Top Players " + ChatColor.DARK_AQUA
 				+ "---------");
-		for (int a = 0; a < maxTop; a++) {
-			sender.sendMessage(ChatColor.GOLD + String.valueOf(a + 1) + ". "
-					+ ChatColor.AQUA + users.get(a).getName() + " - "
-					+ ChatColor.DARK_AQUA + users.get(a).getPoint() + " points");
+		for (int i = 0; i < maxTop; i++) {
+			sender.sendMessage(ChatColor.GOLD + String.valueOf(i + 1) + ". "
+					+ ChatColor.AQUA + users[i].getName() + " - "
+					+ ChatColor.DARK_AQUA + users[i].getPoint() + " points");
 		}
 
 	}
@@ -322,11 +320,5 @@ public class LPCommand implements CommandExecutor {
 
 	}
 
-	class PointsComparator implements Comparator<LPUser> {
-		@Override
-		public int compare(final LPUser a, final LPUser b) {
-			return (b.getPoint() - a.getPoint());
-		}
-	}
 
 }

@@ -32,8 +32,9 @@ public class LCListener implements Listener {
 	public void Velociraptor(final PlayerJoinEvent event) {
 		// permission check
 		if (event.getPlayer().hasPermission("loyaltypoints.general")) {
-			plugin.getUser(event.getPlayer().getName());
-			final LPUser user = plugin.getUser(event.getPlayer().getName());
+			String username = event.getPlayer().getName();
+			
+			 LPUser user = plugin.getUser(username);
 			user.setTimeComparison(new Date().getTime());
 			user.setOnline(true);
 			user.setLocation(event.getPlayer().getLocation());
@@ -51,6 +52,7 @@ public class LCListener implements Listener {
 			user.givePoint();
 			user.setOnline(false);
 			user.setTimeComparison(0);
+			plugin.removeUser(user);
 		}
 	}
 
@@ -59,10 +61,12 @@ public class LCListener implements Listener {
 	public void onPlayerMove(final PlayerMoveEvent event) {
 		// permission check
 		if (event.getPlayer().hasPermission("loyaltypoints.general")) {
-			plugin.kickStart(event.getPlayer().getName());
+			if(!plugin.getUsers().containsKey(event.getPlayer().getName())){
+				plugin.loadUser(event.getPlayer().getName());
+			}
 			if (AFKTrack) {
-				final LPUser user = plugin.getUser(event.getPlayer().getName());
-				final Player now = event.getPlayer();
+				LPUser user = plugin.getUser(event.getPlayer().getName());
+				Player now = event.getPlayer();
 				try{
 					
 				

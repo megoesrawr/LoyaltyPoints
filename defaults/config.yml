@@ -1,4 +1,4 @@
-### EDITED FOR 1.0.9
+### EDITED FOR 1.1.3
 # LoyaltyPoints config file
 
 # How many Loyalty Points should this plugin give after every time cycle?
@@ -28,9 +28,10 @@ SaveTimer: 3600
 starting-points: 0
 
 # In-game chat tag of the plugin
-# Supports color codes: &a-f|0-9
-plugin-tag: '&6[LoyaltyPoints]'
+# do NOT use colors in the plugin-tag!
+plugin-tag: '[LoyaltyPoints]'
 
+# Supports color codes: &a-f|0-9
 # %PLAYERNAME% specifies the player name being checked.
 # %POINTS% specifies the amount of Loyalty Points the player has.
 # Message sent when checking your own Loyalty Points (fired using /lp)

@@ -62,9 +62,12 @@ public class LPTexts {
 		
 	 
 	 private String finalize(String s,int i){
-		 if(i == 1){ //without COLORIZE
+		 if(i == 1){ 
+			 //without COLORIZE
 			s = pluginTag +" " +s;
-		 }else if(i == 2){ // with COLORIZE
+		 }
+		 else if(i == 2){ 
+			 // with COLORIZE
 			 
 		 
 			 s = colorize( "&6" + pluginTag+ " &3"+ s);

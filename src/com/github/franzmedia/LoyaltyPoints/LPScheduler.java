@@ -42,7 +42,7 @@ public class LPScheduler implements Runnable {
 
 						@Override
 						public void run() {
-							plugin.save();
+							plugin.saveOnlineUsers();
 
 						}
 					});

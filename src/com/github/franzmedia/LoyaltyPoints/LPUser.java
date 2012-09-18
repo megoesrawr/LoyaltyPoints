@@ -112,8 +112,14 @@ public class LPUser {
 	}
 
 	public int getTimeLeft() {
-		return lp.getCycleNumber() - timeSinceLastRun() - getTime();
+		int timeleft = lp.getCycleNumber() - timeSinceLastRun() - getTime();
+		
+		return timeleft;
 
+	}
+	
+	public String getTimeLeftDebug(){
+		return lp.getCycleNumber() +"cycle / tslr: " + timeSinceLastRun() + " time:" + getTime();
 	}
 
 	public void givePoint() {
