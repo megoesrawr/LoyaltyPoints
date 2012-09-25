@@ -173,13 +173,8 @@ public class DatabaseHandler {
 						+ users[i].getTime() + "\", " + "totaltime = \""
 						+ users[i].getTotalTime() + "\" WHERE username = \""
 						+ users[i].getName() + "\"";
-				rs = sqlite.query(sql);
-				try {
-					rs.close();
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				sqlite.query(sql);
+				
 			}
 		}
 	}
