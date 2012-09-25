@@ -19,7 +19,7 @@ public class LPUser {
 	private final LoyaltyPoints lp;
 	private boolean online;
 	private boolean haveBeenOnline;
-	private boolean moved;
+
 	private Location location;
 
 	public LPUser(final LoyaltyPoints lp, final String name, final int point,
@@ -106,7 +106,7 @@ public class LPUser {
 	}
 
 	public int timeSinceLastRun() {
-		
+		lp.debug(  (new Date().getTime()+ "-"+ timeComparison) +"/"+ "1000");
 		return  (int) (new Date().getTime() - timeComparison) / 1000;
 		
 	}
@@ -123,15 +123,7 @@ public class LPUser {
 	}
 
 	public void givePoint() {
-		// IF AFK SYSTEM == ON
-		boolean go = true;
 		
-		if (lp.AfkTrackingSystem() && !moved) {
-			go = false;
-		}
-
-		if (go) {
-			
 			if (getTimeLeft() <= 0) {
 				setPoint(point + lp.getIncrement());
 				time = 0 - getTimeLeft();
@@ -140,19 +132,10 @@ public class LPUser {
 			}
 
 			totalTime = totalTime + timeSinceLastRun();
-			moved = false;
+			
 			timeComparison = new Date().getTime();;
 		}
-	}
-
-	public void setMoved(final boolean moved) {
-		this.moved = moved;
-
-	}
-
-	public boolean getMoved() {
-		return moved;
-	}
+	
 
 	public void setLocation(final Location location) {
 		this.location = location;

@@ -6,7 +6,6 @@
 
 package com.github.franzmedia.LoyaltyPoints;
 
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -32,7 +31,13 @@ public class LPCommand implements CommandExecutor {
 			if (args.length == 0) {
 				if (sender instanceof Player) {
 					if (sender.hasPermission("loyaltypoints.check.self")) {
-						sender.sendMessage(lptext.getSelfcheckMessage().replaceAll("%PLAYERNAME%", playerName).replaceAll("%POINTS%", plugin.getUser(playerName).getPoint()+""));
+						sender.sendMessage(lptext
+								.getSelfcheckMessage()
+								.replaceAll("%PLAYERNAME%", playerName)
+								.replaceAll(
+										"%POINTS%",
+										plugin.getUser(playerName).getPoint()
+												+ ""));
 					}
 
 				} else {
@@ -43,7 +48,8 @@ public class LPCommand implements CommandExecutor {
 					if (sender instanceof Player) {
 					} else {
 						sender.sendMessage(lptext.getToMySQL());
-					//	plugin.transformToSQL();
+						sender.sendMessage(plugin.getDBHandler()
+								.transformToSQL());
 					}
 				} else if (args[0].equalsIgnoreCase("add")) {
 
@@ -114,7 +120,8 @@ public class LPCommand implements CommandExecutor {
 									.replaceAll("%PLAYERNAME%", other1)
 									.replaceAll(
 											"%POINTS%",
-											String.valueOf(plugin.getUser(other1).getPoint())));
+											String.valueOf(plugin.getUser(
+													other1).getPoint())));
 
 						} else {
 							if (plugin.areUser(args[0])) {
@@ -123,9 +130,8 @@ public class LPCommand implements CommandExecutor {
 										.replaceAll("%PLAYERNAME%", args[0])
 										.replaceAll(
 												"%POINTS%",
-												String.valueOf(plugin
-														.getUser(args[0])
-														.getPoint())));
+												String.valueOf(plugin.getUser(
+														args[0]).getPoint())));
 
 							} else {
 								sender.sendMessage(lptext.getNoUser());
@@ -148,35 +154,35 @@ public class LPCommand implements CommandExecutor {
 		final int time = user.timeSinceLastRun() + user.getTotalTime();
 
 		final String daten = plugin.getNiceNumber(time);
-		sender.sendMessage(lptext.getOnlinetime().replaceAll("%ONLINETIME%", daten));
+		sender.sendMessage(lptext.getOnlinetime().replaceAll("%ONLINETIME%",
+				daten));
 
 	}
 
 	private void next(final CommandSender sender) {
-		
+
 		final LPUser user = plugin.getUser(sender.getName());
 		final int time = user.getTimeLeft();
-		if(user.getName().toLowerCase().contains("kasperfranz")){
+		if (user.getName().toLowerCase().contains("kasperfranz")) {
 			sender.sendMessage(user.getTimeLeftDebug());
 		}
 		if (time >= 0) {
-		String 	daten = plugin.getNiceNumber(time);
-			
+			String daten = plugin.getNiceNumber(time);
+
 			sender.sendMessage(lptext.getNext().replaceAll("%TIME%", daten));
 		} else {
 			user.givePoint();
 			next(sender);
 		}
 
-		
-
 	}
 
 	private void add(final CommandSender sender, final String[] args) {
 		try {
-			plugin.getUser(args[1])
-					.increasePoint(Integer.parseInt(args[2]));
-			sender.sendMessage(lptext.getAddToUser().replaceAll("%POINT%", args[2]).replaceAll("%USER%", args[1]));
+			plugin.getUser(args[1]).increasePoint(Integer.parseInt(args[2]));
+			sender.sendMessage(lptext.getAddToUser()
+					.replaceAll("%POINT%", args[2])
+					.replaceAll("%USER%", args[1]));
 
 		} catch (final Exception exception) {
 			sender.sendMessage(lptext.getErrorNoPlayer());
@@ -193,13 +199,15 @@ public class LPCommand implements CommandExecutor {
 
 	private void version(final CommandSender sender) {
 
-		sender.sendMessage(lptext.getNowVersion().replaceAll("%VERSION%", plugin.getDescription().getVersion()));
+		sender.sendMessage(lptext.getNowVersion().replaceAll("%VERSION%",
+				plugin.getDescription().getVersion()));
 
 		if (sender.isOp()) {
 			plugin.getNewestVersion();
 
 			if (!plugin.upToDate()) {
-				sender.sendMessage(lptext.getNewVersionAvalible().replaceAll("%NEWVERSION%", plugin.getNewVersion()));
+				sender.sendMessage(lptext.getNewVersionAvalible().replaceAll(
+						"%NEWVERSION%", plugin.getNewVersion()));
 
 			}
 
@@ -218,9 +226,12 @@ public class LPCommand implements CommandExecutor {
 			try {
 				final int amount = Integer.parseInt(args[2]);
 				plugin.getUser(args[1]).setPoint(amount);
-				sender.sendMessage(lptext.getNewSetAmount().replaceAll("%PLAYER%", args[1]).replaceAll("%AMOUNT%", amount+""));
+				sender.sendMessage(lptext.getNewSetAmount()
+						.replaceAll("%PLAYER%", args[1])
+						.replaceAll("%AMOUNT%", amount + ""));
 			} catch (final NumberFormatException e) {
-				sender.sendMessage(lptext.getErrorNumber() + "/lp set [username]");
+				sender.sendMessage(lptext.getErrorNumber()
+						+ "/lp set [username]");
 			}
 		}
 
@@ -234,34 +245,39 @@ public class LPCommand implements CommandExecutor {
 			} catch (final NumberFormatException nfe) { // if args contains
 														// other that integers.
 				sender.sendMessage(lptext.getErrorNumber() + " /lp top");
+				maxTop = 10;
 			}
-			if(maxTop < 10 ){
+
+			if (maxTop < 10) {
 				maxTop = 10;
 			}
 		}
 
+		int from = maxTop - 10;
 		
-
-		
-			
-		LPUser[] users = plugin.getDBHandler().getTop(maxTop-10, maxTop);
-		plugin.debug(users[0].getName());
-
+		LPUser[] users = plugin.getDBHandler().getTop(maxTop - 10, 11);
+		plugin.debug("From: " + from + " MaxzTop" + maxTop + users.length);
 		if (users.length == 0) {
 			sender.sendMessage(lptext.getErrorNoUsers());
-		}
+		} else {
 
-		
-		if (maxTop > users.length) {
-			maxTop = users.length;
-		}
-		sender.sendMessage(ChatColor.DARK_AQUA + "---------" + ChatColor.GOLD
-				+ " LoyaltyPoints Top Players " + ChatColor.DARK_AQUA
-				+ "---------");
-		for (int i = 0; i < maxTop; i++) {
-			sender.sendMessage(ChatColor.GOLD + String.valueOf(i + 1) + ". "
-					+ ChatColor.AQUA + users[i].getName() + " - "
-					+ ChatColor.DARK_AQUA + users[i].getPoint() + " points");
+			if (maxTop > users.length) {
+				maxTop = users.length;
+			}
+			sender.sendMessage(ChatColor.DARK_AQUA + "---------"
+					+ ChatColor.GOLD + " LoyaltyPoints Top Players "
+					+ ChatColor.DARK_AQUA + "---------");
+
+			for (int i = 0; i < users.length; i++) {
+				int pos = i + from + 1;
+				
+					plugin.debug(pos + "" + i + "" + maxTop + " -9");
+					sender.sendMessage(ChatColor.GOLD + String.valueOf(pos)
+							+ ". " + ChatColor.AQUA + users[i].getName()
+							+ " - " + ChatColor.DARK_AQUA + users[i].getPoint()
+							+ " points");
+				
+			}
 		}
 
 	}
@@ -319,6 +335,5 @@ public class LPCommand implements CommandExecutor {
 				+ " LoyaltyPoints Help " + ChatColor.DARK_AQUA + "---------");
 
 	}
-
 
 }

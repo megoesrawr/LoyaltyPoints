@@ -37,7 +37,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class LoyaltyPoints extends JavaPlugin {
 	private DatabaseHandler database;
-	private final Logger logger = Logger.getLogger("Minecraft");
+	private Logger logger;
 	private int increment = 1, cycleNumber = 600,
 			updateTimer = cycleNumber / 4, startingPoints = 0,
 			SaveTimer = 3600, check = -10, version, newestVersion;
@@ -67,13 +67,7 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
-		// Enable metrics (MCstats.org)
-		try {
-			Metric metrics = new Metric(this);
-			metrics.start();
-		} catch (IOException e) {
-			// Failed to submit the stats :-(
-		}
+		logger = Logger.getLogger("Minecraft");
 
 		// Getting the texts
 		lptext = new LPTexts(this);
@@ -97,7 +91,7 @@ public class LoyaltyPoints extends JavaPlugin {
 
 		// Setting up the listener (player login/logout & move)
 		this.getServer().getPluginManager()
-				.registerEvents(new LCListener(this), this);
+				.registerEvents(new LPListener(this), this);
 
 		// checking for a new version!
 		getServer().getScheduler().scheduleSyncDelayedTask(this,
@@ -119,7 +113,24 @@ public class LoyaltyPoints extends JavaPlugin {
 		getServer().getScheduler().scheduleAsyncRepeatingTask(this,
 				new LPScheduler(this), updateTimer, updateTimer);
 
-		// Every player online on enable is kickstarted!
+		// 
+		
+		
+		// Enable metrics (MCstats.org)
+				try {
+					Metric metrics = new Metric(this);
+					  metrics.addCustomData(new Metric.Plotter("Database Type") {
+						  @Override
+					        public int getValue() {
+					        	
+					            return pointType;
+					        }
+
+					    });
+					metrics.start();
+				} catch (IOException e) {
+					// Failed to submit the stats :-(
+				}
 		
 	}
 
@@ -169,30 +180,6 @@ public class LoyaltyPoints extends JavaPlugin {
 			SaveTimer = check;
 		}
 
-		if (!config.contains("afk-tracking-system")) {
-			config.set("afk-tracking-system", 1);
-			try {
-				config.save(new File(this.getDataFolder(), "config.yml"));
-			} catch (final IOException e) {
-				debug(lptext.getConsoleConfigSaveError());
-			}
-		} else {
-			final int gettedValue = config.getInt("afk-tracking-system");
-			switch (gettedValue) {
-			case 1:
-				afkTrackingSystem = true;
-				break;
-			case 0:
-				afkTrackingSystem = false;
-				break;
-
-			default:
-				afkTrackingSystem = true;
-				break;
-			}
-
-		}
-
 		check = checkVariable("point-type");
 		if (check > 0) {
 			pointType = check;
@@ -200,7 +187,7 @@ public class LoyaltyPoints extends JavaPlugin {
 		int type = 0;
 		switch (pointType) {
 		case 1:
-			logger.warning("you can't use File based any more, we are now loading SQlite instead");
+			logger.warning("you can't use File based any more, we are now loading SQlite instead, you can use lp tosql");
 			type = 2;
 			break;
 		case 2:
@@ -354,7 +341,7 @@ public class LoyaltyPoints extends JavaPlugin {
 	}
 
 	public void info(final PluginDescriptionFile pdf, final String status) {
-		this.logger.info("[LoyaltyPoints] version " + pdf.getVersion()
+		this.logger.info("[LoyaltyPoints] Version " + pdf.getVersion()
 				+ " by Franzmedia is now " + status + "!");
 	}
 
@@ -512,6 +499,7 @@ public class LoyaltyPoints extends JavaPlugin {
 	}
 
 	public LPUser getUser(String username) {
+		
 		LPUser user = null;
 		if (areUser(username)) {
 			user = users.get(username);
@@ -581,5 +569,10 @@ public class LoyaltyPoints extends JavaPlugin {
 	public void loadUser(String name) {
 		users.put(name, database.GetUser(name));
 		
+	}
+
+
+	public LPTexts getLptext() {
+		return lptext;
 	}
 }

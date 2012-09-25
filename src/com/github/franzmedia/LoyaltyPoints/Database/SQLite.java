@@ -190,21 +190,22 @@ public class SQLite extends Database {
 	@Override
 	public boolean checkTable(String table) {
 		DatabaseMetaData dbm = null;
+		boolean returnstr;
 		try {
 			dbm = this.open().getMetaData();
 			ResultSet tables = dbm.getTables(null, null, table, null);
 			if (tables.next()){
-tables.close();
-				return true;
+				returnstr =  true;
 			}else{
-				tables.close();
-				return false;
+				returnstr =  false;
 			  
 			}
+			tables.close();
 		} catch (SQLException e) {
 			this.writeError("Failed to check if table \"" + table + "\" exists: " + e.getMessage(), true);
 			return false;
 		}
+		return returnstr;
 	}
 	
 	@Override

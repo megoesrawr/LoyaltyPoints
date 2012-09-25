@@ -8,22 +8,21 @@ package com.github.franzmedia.LoyaltyPoints;
 
 import java.util.Date;
 
-import org.bukkit.entity.Player;
+// import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-public class LCListener implements Listener {
+public class LPListener implements Listener {
 	private final LoyaltyPoints plugin;
-	private final boolean AFKTrack;
+	// private final boolean AFKTrack;
 
 	// Main class for LCListener
-	public LCListener(final LoyaltyPoints plugin) {
+	public LPListener(final LoyaltyPoints plugin) {
 		this.plugin = plugin;
-		AFKTrack = plugin.AfkTrackingSystem();
+	//	AFKTrack = plugin.AfkTrackingSystem();
 
 	}
 
@@ -35,10 +34,10 @@ public class LCListener implements Listener {
 			String username = event.getPlayer().getName();
 			
 			 LPUser user = plugin.getUser(username);
+			 plugin.insertUser(user);
 			user.setTimeComparison(new Date().getTime());
 			user.setOnline(true);
 			user.setLocation(event.getPlayer().getLocation());
-			user.setMoved(false);
 			user.setHaveBeenOnline(true);
 		}
 	}
@@ -57,10 +56,10 @@ public class LCListener implements Listener {
 	}
 
 	// HANDLER FOR PLAYER MOVING!!!!
-	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-	public void onPlayerMove(final PlayerMoveEvent event) {
+//	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+//	public void onPlayerMove(final PlayerMoveEvent event) {
 		// permission check
-		if (event.getPlayer().hasPermission("loyaltypoints.general")) {
+		/* if (event.getPlayer().hasPermission("loyaltypoints.general")) {
 			if(!plugin.getUsers().containsKey(event.getPlayer().getName())){
 				plugin.loadUser(event.getPlayer().getName());
 			}
@@ -85,7 +84,7 @@ public class LCListener implements Listener {
 				}
 				
 			}
-		}
-	}
+		} 
+	} */
 
 }
