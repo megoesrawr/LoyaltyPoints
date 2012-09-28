@@ -4,9 +4,6 @@
 # How many Loyalty Points should this plugin give after every time cycle?
 increment-per-cycle: 1
 
-#AFK Tracking system setup (1 for yes, 0 for no)
-afk-tracking-system: 1
-
 # How long should this time cycle be?
 # This is based on when the player logs on.
 cycle-time-in-seconds: 600
@@ -41,12 +38,13 @@ self-check-message: '&3You have &b%POINTS% &3Loyalty Points.'
 check-otherplayer-message: '&3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.'
 
 
-# 1 if you want to use file based,
 # 2 if you want to use sqLite.
 # 3 if you want to use mysql.
 # default (2)
 point-type: 2
 
+# If it should look for new version at startup 1 = yes 0 = no
+checking-update: 1
 
 
 #################################

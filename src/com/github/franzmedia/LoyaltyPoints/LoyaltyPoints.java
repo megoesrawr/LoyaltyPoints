@@ -93,15 +93,6 @@ public class LoyaltyPoints extends JavaPlugin {
 		this.getServer().getPluginManager()
 				.registerEvents(new LPListener(this), this);
 
-		// checking for a new version!
-		getServer().getScheduler().scheduleSyncDelayedTask(this,
-				new Runnable() {
-
-					@Override
-					public void run() {
-						startUpdateCheck();
-					}
-				});
 
 		// Commands setup!
 		getCommand("lp").setExecutor(new LPCommand(this, lptext));
@@ -133,7 +124,6 @@ public class LoyaltyPoints extends JavaPlugin {
 				}
 		
 	}
-
 
 	@Override
 	public void onDisable() {
@@ -187,7 +177,7 @@ public class LoyaltyPoints extends JavaPlugin {
 		int type = 0;
 		switch (pointType) {
 		case 1:
-			logger.warning("you can't use File based any more, we are now loading SQlite instead, you can use lp tosql");
+			logger.warning("you can't use File based any more, we are now loading SQLite instead, you can use \"lp tosql\" to get it transformed to SQLite");
 			type = 2;
 			break;
 		case 2:
@@ -244,15 +234,17 @@ public class LoyaltyPoints extends JavaPlugin {
 			database = new DatabaseHandler(this, logger, type, null,
 					null, null, null, null);
 		}
+		
+		check = checkVariable("checking-update");
+		if(check != 0){
+			startUpdateCheck();
+		}
 	}
 	
-	
-
 	public DatabaseHandler getDBHandler() {
 		return database;
 	}
 
-	
 	public String checkStringVariable(final String name) {
 		String str = "";
 		if (config.contains(name)) {
@@ -275,8 +267,6 @@ public class LoyaltyPoints extends JavaPlugin {
 		}
 		return str;
 	}
-
-	
 
 	public String getNiceNumber(int millsec) {
 		String str = "";
@@ -371,39 +361,38 @@ public class LoyaltyPoints extends JavaPlugin {
 	 */
 
 	private void checkConfig() {
-		final String name = "config.yml";
-		final File actual = new File(getDataFolder(), name);
+		String name = "config.yml";
+		File actual = new File(getDataFolder(), name);
 		if (!actual.exists()) {
-
 			getDataFolder().mkdir();
-			final InputStream input = this.getClass().getResourceAsStream(
+			InputStream input = this.getClass().getResourceAsStream(
 					"/defaults/config.yml");
 			if (input != null) {
 				FileOutputStream output = null;
 
 				try {
 					output = new FileOutputStream(actual);
-					final byte[] buf = new byte[4096]; // [8192]?
+					byte[] buf = new byte[4096]; // [8192]?
 					int length = 0;
 					while ((length = input.read(buf)) > 0) {
 						output.write(buf, 0, length);
 					}
 					this.logger
-							.info("[LoyaltyPoints] Default configuration file written: "
-									+ name); // TODO: this
-				} catch (final IOException e) {
+							.info("[LoyaltyPoints] Loading the Default config: "
+									+ name);
+				} catch (IOException e) {
 					e.printStackTrace();
 				} finally {
 					try {
 						if (input != null)
 							input.close();
-					} catch (final IOException e) {
+					} catch (IOException e) {
 					}
 
 					try {
 						if (output != null)
 							output.close();
-					} catch (final IOException e) {
+					} catch (IOException e) {
 					}
 				}
 			}
@@ -447,8 +436,6 @@ public class LoyaltyPoints extends JavaPlugin {
 			logger.info(lptext.getPluginUpToDate());
 		}
 	}
-
-	
 
 	public void getNewestVersion() {
 		try {
@@ -510,7 +497,6 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	}
 
-
 	public boolean areUser(String username) {
 		return users.containsKey(username);
 	}
@@ -535,6 +521,7 @@ public class LoyaltyPoints extends JavaPlugin {
 			
 		}
 	}
+	
 	public void saveOnlineUsers() {
 		LPUser[] savingUsers = new LPUser[users.size()];
 		Iterator<String> u = users.keySet().iterator();
@@ -553,7 +540,6 @@ public class LoyaltyPoints extends JavaPlugin {
 		return afkTrackingSystem;
 	}
 
-
 	public Map<String, LPUser> getUsers() {
 		return users;
 	}
@@ -561,16 +547,15 @@ public class LoyaltyPoints extends JavaPlugin {
 	public String getNewVersion() {
 		return newVersion;
 	}
+	
 	public int getStartingPoints() {
 		return startingPoints;
 	}
-
 
 	public void loadUser(String name) {
 		users.put(name, database.GetUser(name));
 		
 	}
-
 
 	public LPTexts getLptext() {
 		return lptext;

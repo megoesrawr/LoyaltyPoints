@@ -164,7 +164,7 @@ public class DatabaseHandler {
 				}
 			}
 		} else {
-			ResultSet rs = null;
+			
 			for (int i = 0; i < users.length; i++) {
 
 				// TODO: MAKE IT SO IT DOES IT LOKE WITH THE MYSQL!
