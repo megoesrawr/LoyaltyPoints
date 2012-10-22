@@ -40,6 +40,9 @@ permissions:
         default: true
     loyaltypoints.add:
         description: Allows the player to add x points to the user.
+        default: op  
+    loyaltypoints.shop.create:
+        description: Allows the player to create a shop, place a sign with a shop value
         default: op
     loyaltypoints.user:
         description: Permissions package of LoyaltyPoints that is essential for a normal user.

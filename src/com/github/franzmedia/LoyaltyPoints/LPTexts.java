@@ -267,10 +267,8 @@ public class LPTexts {
 
 
 	public void loadText() {
-		 checkotherMessage = plugin.checkStringVariable("check-otherplayer-message");
-		 pluginTag = plugin.checkStringVariable("plugin-tag");
-		 selfcheckMessage = plugin.checkStringVariable("self-check-message");
-		 System.out.println("success");
-		
+		 checkotherMessage = plugin.getlpConfig().checkStringVariable("check-otherplayer-message");
+		 pluginTag = plugin.getlpConfig().checkStringVariable("plugin-tag");
+		 selfcheckMessage = plugin.getlpConfig().checkStringVariable("self-check-message");		
 	}
 }

@@ -15,56 +15,30 @@
 
 package com.github.franzmedia.LoyaltyPoints;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
-import com.github.franzmedia.LoyaltyPoints.Database.DatabaseHandler;
 
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.github.franzmedia.LoyaltyPoints.Metrics.Metric;
+import com.github.franzmedia.LoyaltyPoints.Shop.LPShop;
+
 public class LoyaltyPoints extends JavaPlugin {
-	private DatabaseHandler database;
 	private Logger logger;
-	private int increment = 1, cycleNumber = 600,
-			updateTimer = cycleNumber / 4, startingPoints = 0,
-			SaveTimer = 3600, check = -10, version, newestVersion;
-	
 
 	private int debug = 0;
-	private boolean afkTrackingSystem = true;
-	private int pointType = 2;
-	private String newVersion, checkString = "";
 	private final Map<String, LPUser> users = new HashMap<String, LPUser>();
-
-	/* Mysql */
-	private FileConfiguration config;
-	private File mapFile;
-//	private FileConfiguration mapFileConfig;
-//	private LPFileManager LPFM;
+	private LPConfig config;
 	private LPTexts lptext;
+	private LPShop shop;
 
-	/* Messages EDITABLE */
-
-	// public List<String> milestones = new ArrayList<String>();
-	// public Map<String, List<Integer>> rewardsTracker = new HashMap<String,
-	// List<Integer>>(); // For tracking rewards, etc.
-
-	// public static Economy economy = null;
-	// public boolean economyPresent = true;3
-
+	
 	@Override
 	public void onEnable() {
 		logger = Logger.getLogger("Minecraft");
@@ -72,27 +46,23 @@ public class LoyaltyPoints extends JavaPlugin {
 		// Getting the texts
 		lptext = new LPTexts(this);
 
-		// loading the variables from the config!
-		loadVariables();
-
+		// loading the variables from the config! + making the config object
+		config = new LPConfig(this.getConfig(), this, logger);
+		
+		// new Shop if active
+		if(config.shopActive()){
+			shop = new LPShop(this);
+		}
+		
 		// loading the texts from the config!
 		lptext.loadText();
 
-		// loading the points !!!
-		getServer().getScheduler().scheduleSyncDelayedTask(this,
-				new Runnable() {
-
-					@Override
-					public void run() {
-						loadOnlineUsers();
-
-					}
-				});
+		// loading the points (If there are any online)!!!
+		loadOnlineUsers();
 
 		// Setting up the listener (player login/logout & move)
 		this.getServer().getPluginManager()
 				.registerEvents(new LPListener(this), this);
-
 
 		// Commands setup!
 		getCommand("lp").setExecutor(new LPCommand(this, lptext));
@@ -102,170 +72,34 @@ public class LoyaltyPoints extends JavaPlugin {
 
 		// Making scheduler (giving points after the update timer)
 		getServer().getScheduler().scheduleAsyncRepeatingTask(this,
-				new LPScheduler(this), updateTimer, updateTimer);
+				new LPScheduler(this), config.getUpdateTimer(),
+				config.getUpdateTimer());
 
-		// 
-		
-		
 		// Enable metrics (MCstats.org)
-				try {
-					Metric metrics = new Metric(this);
-					  metrics.addCustomData(new Metric.Plotter("Database Type") {
-						  @Override
-					        public int getValue() {
-					        	
-					            return pointType;
-					        }
+		Metrics();
 
-					    });
-					metrics.start();
-				} catch (IOException e) {
-					// Failed to submit the stats :-(
-				}
-		
 	}
 
 	@Override
 	public void onDisable() {
-		
+
 		giveOnlineUsersPoints();
 		saveOnlineUsers();
 		users.clear();
 		info(this.getDescription(), "disabled");
 	}
-	
+
 	public void loadOnlineUsers() {
 		for (final Player player : getServer().getOnlinePlayers()) {
-			if(player.hasPermission("loyaltypoints.general")){
-				users.put(player.getName(), database.GetUser(player.getName()));
+			if (player.hasPermission("loyaltypoints.general")) {
+				users.put(player.getName(),
+						config.getDatabase().GetUser(player.getName()));
 			}
 		}
 	}
-	
-	public void loadVariables() {
-		checkConfig();
-		config = this.getConfig();
-		check = checkVariable("increment-per-cycle");
-		if (check > 0) {
-			increment = check;
-		}
 
-		check = checkVariable("cycle-time-in-seconds");
-		if (check > 0) {
-			cycleNumber = check;
-		}
-
-		check = checkVariable("update-timer");
-		if (check > 0) {
-			updateTimer = check * 20;
-		}
-
-		check = checkVariable("starting-points");
-		if (check > 0) {
-			startingPoints = check;
-		}
-
-		check = checkVariable("SaveTimer");
-		if (check > 0) {
-			SaveTimer = check;
-		}
-
-		check = checkVariable("point-type");
-		if (check > 0) {
-			pointType = check;
-		}
-		int type = 0;
-		switch (pointType) {
-		case 1:
-			logger.warning("you can't use File based any more, we are now loading SQLite instead, you can use \"lp tosql\" to get it transformed to SQLite");
-			type = 2;
-			break;
-		case 2:
-			type = 2;
-			break;
-		case 3:
-			type = 1;
-			break;
-		}
-		if (type == 1) {
-			 String mysql_host = null, mysql_port = "3306", mysql_user = null,
-					mysql_pass = null, mysql_database = null;
-			String miss = "";
-			checkString = checkStringVariable("mysql-host");
-			if (!checkString.isEmpty()) {
-				mysql_host = checkString;
-			} else {
-				miss = "host ";
-			}
-
-			checkString = checkStringVariable("mysql-port");
-			if (!checkString.isEmpty()) {
-				mysql_port = checkString;
-			}
-
-			checkString = checkStringVariable("mysql-user");
-			if (!checkString.isEmpty()) {
-				mysql_user = checkString;
-			} else {
-				miss = miss + "user ";
-			}
-			checkString = checkStringVariable("mysql-pass");
-			if (!checkString.isEmpty()) {
-				mysql_pass = checkString;
-			} else {
-				miss = miss + "pass ";
-			}
-
-			checkString = checkStringVariable("mysql-database");
-			if (!checkString.isEmpty()) {
-				mysql_database = checkString;
-
-			}
-			if (miss.length() < 3) {
-				database = new DatabaseHandler(this, logger, type, mysql_host,
-						mysql_port, mysql_database, mysql_user, mysql_pass);
-			} else {
-				logger.warning(lptext.getConsoleMysqlError().replace(
-						"%MYSQLERROR%", miss));
-				setEnabled(false);
-			}
-
-		}else{
-			database = new DatabaseHandler(this, logger, type, null,
-					null, null, null, null);
-		}
-		
-		check = checkVariable("checking-update");
-		if(check != 0){
-			startUpdateCheck();
-		}
-	}
-	
-	public DatabaseHandler getDBHandler() {
-		return database;
-	}
-
-	public String checkStringVariable(final String name) {
-		String str = "";
-		if (config.contains(name)) {
-			str = config.getString(name);
-			debug(str + "" + name);
-		} else {
-			logger.info(lptext.getConsoleConfigError().replace("%ERROR%", name));
-		}
-		return str;
-	}
-
-	public int checkVariable(final String name) {
-		int str = -10;
-
-		if (config.contains(name)) {
-			str = config.getInt(name);
-			debug(str + "" + name);
-		} else {
-			logger.info(lptext.getConsoleConfigError().replace("%ERROR%", name));
-		}
-		return str;
+	public void stop() {
+		setEnabled(false);
 	}
 
 	public String getNiceNumber(int millsec) {
@@ -335,86 +169,10 @@ public class LoyaltyPoints extends JavaPlugin {
 				+ " by Franzmedia is now " + status + "!");
 	}
 
-	/*
-	 * private boolean setupEconomy() { if
-	 * (getServer().getPluginManager().getPlugin("Vault") == null) { return
-	 * false; } RegisteredServiceProvider<Economy> rsp =
-	 * getServer().getServicesManager().getRegistration(Economy.class); if (rsp
-	 * == null) { return false; } economy = rsp.getProvider(); return economy !=
-	 * null; }
-	 */
+	public void removeUser(LPUser user) {
 
-	/*
-	 * public void checkReward(String player) { int pointsAmount =
-	 * this.loyaltyMap.get(player); List<Integer> i = new ArrayList<Integer>();
-	 * for (Iterator<String> it = this.milestones.iterator(); it.hasNext();) {
-	 * int msAmount = Integer.parseInt(it.next()); if (pointsAmount > msAmount)
-	 * { i.add(msAmount); } } if (i.isEmpty()) { return; } int isMax; for (int f
-	 * = 0; f < i.size(); f++) { EconomyResponse paid =
-	 * LoyaltyPoints.economy.depositPlayer(player, i.get(f)); // You have been
-	 * payed so and so amount... // Broadcast here.. } // int topSize =
-	 * i.size()-1; /*while
-	 * (this.getConfig().getBoolean("points-milestones.Amounts." +
-	 * String.valueOf(i.get(topSize)) + ".broadcast") == false) {
-	 * 
-	 * // } }
-	 */
-
-	private void checkConfig() {
-		String name = "config.yml";
-		File actual = new File(getDataFolder(), name);
-		if (!actual.exists()) {
-			getDataFolder().mkdir();
-			InputStream input = this.getClass().getResourceAsStream(
-					"/defaults/config.yml");
-			if (input != null) {
-				FileOutputStream output = null;
-
-				try {
-					output = new FileOutputStream(actual);
-					byte[] buf = new byte[4096]; // [8192]?
-					int length = 0;
-					while ((length = input.read(buf)) > 0) {
-						output.write(buf, 0, length);
-					}
-					this.logger
-							.info("[LoyaltyPoints] Loading the Default config: "
-									+ name);
-				} catch (IOException e) {
-					e.printStackTrace();
-				} finally {
-					try {
-						if (input != null)
-							input.close();
-					} catch (IOException e) {
-					}
-
-					try {
-						if (output != null)
-							output.close();
-					} catch (IOException e) {
-					}
-				}
-			}
-		}
-	}
-	
-	public void removeUser(LPUser user){
-		
-		database.saveUser(user);
+		config.getDatabase().saveUser(user);
 		users.remove(user.getName());
-	}
-
-	public int getCycleNumber() {
-		return cycleNumber;
-	}
-
-	public int getIncrement() {
-		return increment;
-	}
-
-	public int getUpdateTimer() {
-		return updateTimer;
 	}
 
 	public void debug(String txt) {
@@ -423,75 +181,20 @@ public class LoyaltyPoints extends JavaPlugin {
 		}
 	}
 
-	public void startUpdateCheck() {
-		version = VersionFormat(getDescription().getVersion());
-		newestVersion = version;
-		getNewestVersion();
-
-		if (!upToDate()) {
-			logger.info("------------");
-			logger.warning(lptext.getPluginNotUpToDate());
-			logger.info("------------");
-		} else {
-			logger.info(lptext.getPluginUpToDate());
-		}
-	}
-
-	public void getNewestVersion() {
-		try {
-			final URL url = new URL(
-					"https://raw.github.com/franzmedia/LoyaltyPoints/master/version.txt");
-			final URLConnection connection = url.openConnection();
-			final BufferedReader in = new BufferedReader(new InputStreamReader(
-					connection.getInputStream()));
-			newVersion = in.readLine();
-			debug(newVersion);
-
-			newestVersion = VersionFormat(newVersion);
-
-			in.close();
-		} catch (final MalformedURLException e) {
-			logger.warning(lptext.getErrorLoadingNewVersion());
-		} catch (final IOException e) {
-			logger.warning(lptext.getErrorLoadingNewVersion());
-		}
-	}
-
-	private int VersionFormat(final String Version) {
-		String NV = Version.replaceAll("\\.", "");
-		debug("AFTER NV" + NV);
-		final char arr[] = NV.toCharArray();
-		NV = "";
-		for (int i = 0; i < arr.length; i++) {
-			NV = NV + arr[i];
-
-		}
-		final int miss = 4 - arr.length;
-
-		for (int i = 0; i < miss; i++) {
-			NV = NV + 0;
-
-		}
-		debug("newest:" + NV);
-		return Integer.parseInt(NV);
-	}
-
-	public int getSaveTimer() {
-		return SaveTimer;
-	}
-
 	public void insertUser(final LPUser user) {
+		user.setTimeComparison(new Date().getTime());
+		user.setOnline(true);
 		users.put(user.getName(), user);
 
 	}
 
 	public LPUser getUser(String username) {
-		
+
 		LPUser user = null;
 		if (areUser(username)) {
 			user = users.get(username);
 		} else {
-			user = database.GetUser(username);
+			user = config.getDatabase().GetUser(username);
 		}
 		return user;
 
@@ -501,63 +204,66 @@ public class LoyaltyPoints extends JavaPlugin {
 		return users.containsKey(username);
 	}
 
-	public boolean upToDate() {
-		boolean returnstr = false;
-		debug("uptoDATE" + newestVersion + ">" + version);
-		if (newestVersion > version) {
-			returnstr = false;
-		} else {
-			returnstr = true;
-		}
+	public void giveOnlineUsersPoints() {
 
-		return returnstr;
-	}
-	
-	public void giveOnlineUsersPoints(){
-		
 		Iterator<String> u = users.keySet().iterator();
-		while(u.hasNext()){
+		while (u.hasNext()) {
 			users.get(u.next()).givePoint();
-			
+
 		}
 	}
-	
+
 	public void saveOnlineUsers() {
 		LPUser[] savingUsers = new LPUser[users.size()];
 		Iterator<String> u = users.keySet().iterator();
-		for(int i = 0;u.hasNext();i++){
+		for (int i = 0; u.hasNext(); i++) {
 			savingUsers[i] = users.get(u.next());
 		}
-		database.saveUsers(savingUsers);
-	}
-
-	public File getMapFile() {
-
-		return mapFile;
-	}
-
-	public boolean AfkTrackingSystem() {
-		return afkTrackingSystem;
+		config.getDatabase().saveUsers(savingUsers);
 	}
 
 	public Map<String, LPUser> getUsers() {
 		return users;
 	}
 
-	public String getNewVersion() {
-		return newVersion;
-	}
-	
-	public int getStartingPoints() {
-		return startingPoints;
-	}
-
 	public void loadUser(String name) {
-		users.put(name, database.GetUser(name));
-		
+		users.put(name, config.getDatabase().GetUser(name));
+
 	}
 
 	public LPTexts getLptext() {
 		return lptext;
+	}
+
+	private void Metrics() {
+
+		try {
+		
+			Metric metrics = new Metric(this);
+			
+			metrics.addCustomData(new Metric.Plotter("PointType") {
+
+			        @Override
+			        public int getValue() {
+			            return config.getType();
+			        }
+
+			    });
+
+			metrics.start();
+			
+		} catch (IOException e) {
+			// Failed to submit the stats :-(
+		}
+
+	}
+
+	
+	public LPConfig getlpConfig() {
+		return config;
+	}
+
+	public LPShop getShop() {
+		return shop;
 	}
 }

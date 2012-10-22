@@ -35,7 +35,7 @@ public class LPScheduler implements Runnable {
 	
 		// if it's time to save to the database/file it does this here in a new
 		// thread.
-		if ((now - updateTimer) / 1000 >= plugin.getUpdateTimer()) {
+		if ((now - updateTimer) / 1000 >= plugin.getlpConfig().getUpdateTimer()) {
 			updateTimer = new Date().getTime();
 			plugin.getServer().getScheduler()
 					.scheduleSyncDelayedTask(plugin, new Runnable() {

@@ -1,44 +1,39 @@
 /* 
  * AUTHOR: Kasper Franz
- * Loyalty Points 1.0.9
- * Last Changed: Made implements of permission general
+ * Loyalty Points 1.1.3
+ * Last Changed: implented the shop system and some small tweaks
  */
 
 package com.github.franzmedia.LoyaltyPoints;
 
-import java.util.Date;
-
-// import org.bukkit.entity.Player;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.block.Sign;
 
 public class LPListener implements Listener {
 	private final LoyaltyPoints plugin;
-	// private final boolean AFKTrack;
+	private boolean shop_active;
 
 	// Main class for LCListener
 	public LPListener(final LoyaltyPoints plugin) {
 		this.plugin = plugin;
-	//	AFKTrack = plugin.AfkTrackingSystem();
-
+		// AFKTrack = plugin.AfkTrackingSystem();
+		shop_active = plugin.getlpConfig().shopActive();
 	}
 
 	// HANDLER FOR PLAYER JOIN
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-	public void Velociraptor(final PlayerJoinEvent event) {
+	public void onPlayerLogin(final PlayerJoinEvent event) {
 		// permission check
 		if (event.getPlayer().hasPermission("loyaltypoints.general")) {
-			String username = event.getPlayer().getName();
-			
-			 LPUser user = plugin.getUser(username);
-			 plugin.insertUser(user);
-			user.setTimeComparison(new Date().getTime());
-			user.setOnline(true);
-			user.setLocation(event.getPlayer().getLocation());
-			user.setHaveBeenOnline(true);
+			plugin.insertUser(plugin.getUser(event.getPlayer().getName()));
 		}
 	}
 
@@ -47,44 +42,38 @@ public class LPListener implements Listener {
 	public void onPlayerLogout(final PlayerQuitEvent event) {
 		// permission check
 		if (event.getPlayer().hasPermission("loyaltypoints.general")) {
-			final LPUser user = plugin.getUser(event.getPlayer().getName());
+			LPUser user = plugin.getUser(event.getPlayer().getName());
 			user.givePoint();
-			user.setOnline(false);
-			user.setTimeComparison(0);
 			plugin.removeUser(user);
 		}
 	}
 
-	// HANDLER FOR PLAYER MOVING!!!!
-//	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-//	public void onPlayerMove(final PlayerMoveEvent event) {
-		// permission check
-		/* if (event.getPlayer().hasPermission("loyaltypoints.general")) {
-			if(!plugin.getUsers().containsKey(event.getPlayer().getName())){
-				plugin.loadUser(event.getPlayer().getName());
-			}
-			if (AFKTrack) {
-				LPUser user = plugin.getUser(event.getPlayer().getName());
-				Player now = event.getPlayer();
-				try{
-					
-				
-				final int xdif = user.getLocation().getBlockX()-now.getLocation().getBlockX();
-				final int ydif = user.getLocation().getBlockY()-now.getLocation().getBlockY();
-				final int zdif = user.getLocation().getBlockZ()-now.getLocation().getBlockZ();
-				if (xdif >= 1 || xdif <= -1 || ydif >= 2 || ydif <= -2
-						|| zdif >= 1 || zdif <= -1) {
-					user.setLocation(event.getPlayer().getLocation());
-					if (!user.getMoved()) {
-						user.setMoved(true);
-					}
+	// HANDLER FOR the playerInteractEvent (player right click)
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+	public void onPlayerInteract(final PlayerInteractEvent event) {
+		if (shop_active) {
+			if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+				if (event.getClickedBlock().getType() == Material.SIGN_POST
+						|| event.getClickedBlock().getType() == Material.WALL_SIGN) {
+					Sign sign = (Sign) event.getClickedBlock().getState();
+					if (sign.getLine(0).toLowerCase().contains("[loyaltyshop]")) {
+						event.getPlayer()
+								.sendMessage(
+										"This is just to shop that the shop is running everything from here is controlled by the shop.action");
+						plugin.getShop().action(event.getPlayer(), sign);
+					}else{
+						event.getPlayer().sendMessage(sign.getLine(0));					}
 				}
-				}catch(Exception io){
-					user.setLocation(event.getPlayer().getLocation());
-				}
-				
-			}
-		} 
-	} */
+			} 
+		}
+		
 
+	}
+
+	// HANDLER FOR THE SIGN PLACEMENT EVENT()
+	// Used to check if the sign is a shop sign and
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+	public void onEditShop(final SignChangeEvent event) {
+		plugin.getShop().createSign(event);
+	}
 }

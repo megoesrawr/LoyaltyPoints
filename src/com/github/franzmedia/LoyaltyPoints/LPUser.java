@@ -1,14 +1,12 @@
 /* 
  * AUTHOR: Kasper Franz
- * Loyalty Points 1.0.9
- * Last Changed: Made the AFK system
+ * Loyalty Points 1.1.4
+ * Last Changed: Fixed a bug in removPoints() there got it not to remove any points at all
  */
 
 package com.github.franzmedia.LoyaltyPoints;
 
 import java.util.Date;
-
-import org.bukkit.Location;
 
 public class LPUser {
 	private String name;
@@ -18,10 +16,6 @@ public class LPUser {
 	private long timeComparison;
 	private final LoyaltyPoints lp;
 	private boolean online;
-	private boolean haveBeenOnline;
-
-	private Location location;
-
 	public LPUser(final LoyaltyPoints lp, final String name, final int point,
 			final int time, final int totalTime, final long timeComparison) {
 		this.name = name;
@@ -69,11 +63,11 @@ public class LPUser {
 			return rtnb;
 			}
 	
-	public boolean removePoint(final int point) {
+	public boolean removePoint(final int removeNumb) {
 		boolean rtnb;
-		if (point >= this.point) {
+		if (removeNumb <= point) {
 			rtnb = true;
-			this.point = this.point - point;
+			point = point - removeNumb;
 		} else {
 			rtnb = true;
 		}
@@ -112,20 +106,20 @@ public class LPUser {
 	}
 
 	public int getTimeLeft() {
-		int timeleft = lp.getCycleNumber() - timeSinceLastRun() - getTime();
+		int timeleft = lp.getlpConfig().getCycleNumber() - timeSinceLastRun() - getTime();
 		
 		return timeleft;
 
 	}
 	
 	public String getTimeLeftDebug(){
-		return lp.getCycleNumber() +"cycle / tslr: " + timeSinceLastRun() + " time:" + getTime();
+		return lp.getlpConfig().getCycleNumber() +"cycle / tslr: " + timeSinceLastRun() + " time:" + getTime();
 	}
 
 	public void givePoint() {
 		
 			if (getTimeLeft() <= 0) {
-				setPoint(point + lp.getIncrement());
+				setPoint(point + lp.getlpConfig().getIncrement());
 				time = 0 - getTimeLeft();
 			} else {
 				time = time + timeSinceLastRun();
@@ -135,24 +129,9 @@ public class LPUser {
 			
 			timeComparison = new Date().getTime();;
 		}
+
 	
 
-	public void setLocation(final Location location) {
-		this.location = location;
-
-	}
-
-	public Location getLocation() {
-		return location;
-
-	}
-
-	public boolean isHaveBeenOnline() {
-		return haveBeenOnline;
-	}
-
-	public void setHaveBeenOnline(boolean haveBeenOnline) {
-		this.haveBeenOnline = haveBeenOnline;
-	}
+	
 
 }

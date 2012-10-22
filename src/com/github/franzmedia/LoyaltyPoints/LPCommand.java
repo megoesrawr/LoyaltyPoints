@@ -48,8 +48,7 @@ public class LPCommand implements CommandExecutor {
 					if (sender instanceof Player) {
 					} else {
 						sender.sendMessage(lptext.getToMySQL());
-						sender.sendMessage(plugin.getDBHandler()
-								.transformToSQL());
+						sender.sendMessage(plugin.getlpConfig().getDatabase().transformToSQL());
 					}
 				} else if (args[0].equalsIgnoreCase("add")) {
 
@@ -203,11 +202,11 @@ public class LPCommand implements CommandExecutor {
 				plugin.getDescription().getVersion()));
 
 		if (sender.isOp()) {
-			plugin.getNewestVersion();
+			plugin.getlpConfig().getNewestVersion();
 
-			if (!plugin.upToDate()) {
+			if (!plugin.getlpConfig().upToDate()) {
 				sender.sendMessage(lptext.getNewVersionAvalible().replaceAll(
-						"%NEWVERSION%", plugin.getNewVersion()));
+						"%NEWVERSION%", plugin.getlpConfig().getNewestVersion()+""));
 
 			}
 
@@ -255,7 +254,7 @@ public class LPCommand implements CommandExecutor {
 
 		int from = maxTop - 10;
 		
-		LPUser[] users = plugin.getDBHandler().getTop(maxTop - 10, 11);
+		LPUser[] users = plugin.getlpConfig().getDatabase().getTop(maxTop - 10, 11);
 		plugin.debug("From: " + from + " MaxzTop" + maxTop + users.length);
 		if (users.length == 0) {
 			sender.sendMessage(lptext.getErrorNoUsers());

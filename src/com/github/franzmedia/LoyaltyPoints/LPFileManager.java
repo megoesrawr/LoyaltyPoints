@@ -1,5 +1,6 @@
 package com.github.franzmedia.LoyaltyPoints;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
@@ -12,7 +13,7 @@ public class LPFileManager {
 
 	public LPFileManager(final LoyaltyPoints pluginet) {
 		plugin = pluginet;
-		yConfig = YamlConfiguration.loadConfiguration(plugin.getMapFile());
+		yConfig = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(),"points.yml"));
 	}
 
 	public boolean load(final String playerName) {
@@ -43,7 +44,7 @@ public class LPFileManager {
 			yConfig.set(playerName + ".totalTime", totalTime);
 		}
 		try { // Trying to save it!
-			yConfig.save(plugin.getMapFile());
+			yConfig.save(new File(plugin.getDataFolder(),"points.yml"));
 		} catch (final IOException e) { // couldn't
 			e.printStackTrace();
 		}

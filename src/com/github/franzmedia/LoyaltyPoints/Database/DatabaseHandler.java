@@ -203,7 +203,7 @@ public class DatabaseHandler {
 	}
 
 	public LPUser GetUser(String username) {
-		// TODO: MAKE THE get user ELSE INSERT HIM!
+		
 		LPUser user = null;
 		long now = new Date().getTime();
 
@@ -254,7 +254,7 @@ public class DatabaseHandler {
 			}
 		} else {
 			// NEW USER!!!!;
-			user = new LPUser(plugin, username, plugin.getStartingPoints(), 0,
+			user = new LPUser(plugin, username, plugin.getlpConfig().getStartingPoints(), 0,
 					0, now);
 			insertUser(user);
 

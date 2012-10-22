@@ -1,4 +1,4 @@
-package com.github.franzmedia.LoyaltyPoints;
+package com.github.franzmedia.LoyaltyPoints.Metrics;
 /*
  * Copyright 2011 Tyler Blair. All rights reserved.
  *
@@ -141,7 +141,7 @@ public class Metric {
         if (plugin == null) {
             throw new IllegalArgumentException("Plugin cannot be null");
         }
-
+        
         this.plugin = plugin;
 
         // load the config
