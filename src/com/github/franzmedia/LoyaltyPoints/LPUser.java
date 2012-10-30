@@ -1,13 +1,13 @@
-/* 
- * AUTHOR: Kasper Franz
- * Loyalty Points 1.1.4
- * Last Changed: Fixed a bug in removPoints() there got it not to remove any points at all
- */
-
 package com.github.franzmedia.LoyaltyPoints;
 
 import java.util.Date;
-
+/**
+ * Handler to hold and control information about the user. 
+ * @author Franz
+ * @version 1.1.4
+ *  Changed: Made java doc for it 
+ *
+ */
 public class LPUser {
 	private String name;
 	private int point;
@@ -15,7 +15,16 @@ public class LPUser {
 	private int totalTime;
 	private long timeComparison;
 	private final LoyaltyPoints lp;
-	private boolean online;
+	/**
+	 * Creates a object with all information about the user is needed for the class to be used.
+	 * 
+	 * @param lp a reference to the plugin (needed to get to the config and for debug).
+	 * @param name The name of the user, also used as the key in the lists.
+	 * @param point The amount of points the player have.
+	 * @param time The time the player have been online since last point round (in sec)
+	 * @param totalTime The Totaltime the player have been online.
+	 * @param timeComparison The last time the player have been seen.
+	 */
 	public LPUser(final LoyaltyPoints lp, final String name, final int point,
 			final int time, final int totalTime, final long timeComparison) {
 		this.name = name;
@@ -23,46 +32,62 @@ public class LPUser {
 		this.time = time;
 		this.totalTime = totalTime;
 		this.lp = lp;
-		this.setTimeComparison(timeComparison);
-		this.online = true;
+		this.timeComparison = timeComparison;
 
 	}
-
-	public boolean isOnline() {
-		return online;
+	
+	
+	/**
+	 * This constructor is used for creationg a new user (without points, time and so on.
+	 * @param name The name of the user
+	 * @param lp Reference to the main class.
+	 */
+	public LPUser(String name, LoyaltyPoints lp) {
+		this.name = name;
+		this.lp = lp;
+		point = lp.getlpConfig().getStartingPoints();
+		time = 0;
+		totalTime = 0;
+		timeComparison = new Date().getTime();
+		
 	}
-
-	public void setOnline(final boolean online) {
-		this.online = online;
-	}
-
+	/**
+	 * 
+	 * @return The Users name.
+	 */
 	public String getName() {
 		return name;
 	}
 
-	public void setName(final String name) {
-		this.name = name;
-	}
-
+	
+	/**
+	 * A method to get the users points
+	 * 
+	 * @return the amount of points the user haves
+	 */
 	public int getPoint() {
 		return point;
 	}
 
+	/**
+	 * A command to set the points for the user
+	 * @param point Sets the user points to this.
+	 */
 	public void setPoint(final int point) {
 		this.point = point;
 	}
-
-	public boolean increasePoint(final int point) {
-			boolean rtnb;
-			if (point <= this.point) {
-				rtnb = true;
+/**
+ * A method to increate the users point.
+ * @param point the amount to increase the points with.
+ */
+	public void increasePoint(final int point) {
 				this.point = this.point + point;
-			} else {
-				rtnb = true;
 			}
-			return rtnb;
-			}
-	
+	/**
+	 * A method to remove points from the user.
+	 * @param removeNumb the amout of points to remove from the user.
+	 * @return true if success else false. (he dont have the points)
+	 */
 	public boolean removePoint(final int removeNumb) {
 		boolean rtnb;
 		if (removeNumb <= point) {
@@ -75,47 +100,73 @@ public class LPUser {
 		return rtnb;
 	}
 
+	/**
+	 * 
+	 * @return the amount of time the player is on atm.
+	 */
 	public int getTime() {
 		return time;
 	}
-
+/**
+ * 
+ * @param time the new time the player have been playing.
+ */
 	public void setTime(final int time) {
 		this.time = time;
 	}
-
+/**
+ * 
+ * @return the amount of playtime the user have (total)
+ */
 	public int getTotalTime() {
 		return totalTime;
 	}
-
+/**
+ * 
+ * 
+ * @param totalTime The new total playtime.
+ */
 	public void setTotalTime(final int totalTime) {
 		this.totalTime = totalTime;
 	}
 
+	
+	/***
+	 * 
+	 * @return get the time that last cycle was run.
+	 */
+	
 	public long getTimeComparison() {
 		return timeComparison;
 	}
-
+/**
+ * 
+ * @param timeComparison The new time of the cycle.
+ */
 	public void setTimeComparison(final long timeComparison) {
 		this.timeComparison = timeComparison;
 	}
-
+/**
+ * 
+ * @return The amount of time since this last was run.
+ */
 	public int timeSinceLastRun() {
 		lp.debug(  (new Date().getTime()+ "-"+ timeComparison) +"/"+ "1000");
 		return  (int) (new Date().getTime() - timeComparison) / 1000;
 		
 	}
-
+/**
+ * 
+ * @return Time left for new points
+ */
 	public int getTimeLeft() {
-		int timeleft = lp.getlpConfig().getCycleNumber() - timeSinceLastRun() - getTime();
 		
-		return timeleft;
+		return lp.getlpConfig().getCycleNumber() - timeSinceLastRun() - getTime();
 
 	}
-	
-	public String getTimeLeftDebug(){
-		return lp.getlpConfig().getCycleNumber() +"cycle / tslr: " + timeSinceLastRun() + " time:" + getTime();
-	}
-
+	/***
+	 * Method to see if the player should get points and if he needs points he gets it, else we just add the new time  to him.
+	 */
 	public void givePoint() {
 		
 			if (getTimeLeft() <= 0) {
@@ -129,9 +180,4 @@ public class LPUser {
 			
 			timeComparison = new Date().getTime();;
 		}
-
-	
-
-	
-
 }

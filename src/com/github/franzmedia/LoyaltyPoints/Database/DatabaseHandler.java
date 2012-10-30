@@ -109,12 +109,12 @@ public class DatabaseHandler {
 
 	}
 
-	private boolean checkUser(LPUser user) {
+	public boolean checkUser(String username) {
 		boolean returnboolean = false;
 		ResultSet rs;
 		int c = 0;
 		String query = "SELECT count(*) as c FROM  users WHERE username=\""
-				+ user.getName() + "\"";
+				+ username + "\"";
 
 		switch(type){
 		case 1:
@@ -181,7 +181,7 @@ public class DatabaseHandler {
 
 	public void insertUser(LPUser user) {
 
-		if (!checkUser(user)) {
+		if (!checkUser(user.getName())) {
 
 		
 			String sql = "INSERT INTO users VALUES (\"" + user.getName()
@@ -254,8 +254,7 @@ public class DatabaseHandler {
 			}
 		} else {
 			// NEW USER!!!!;
-			user = new LPUser(plugin, username, plugin.getlpConfig().getStartingPoints(), 0,
-					0, now);
+			user = new LPUser(username,plugin);
 			insertUser(user);
 
 		}
@@ -268,7 +267,7 @@ public class DatabaseHandler {
 
 		String query = "SELECT username,point,totaltime, time FROM users order by point desc LIMIT "
 				+ from + "," + to;
-
+		System.out.println(query);
 		plugin.debug(query);
 		ResultSet rs;
 		switch(type){
@@ -282,7 +281,6 @@ public class DatabaseHandler {
 			
 		plugin.debug("before try");
 		try {
-			rs.next();
 			users = new LPUser[to];
 			plugin.debug("Size: " + users.length);
 			Long now = new Date().getTime();
@@ -365,7 +363,7 @@ public class DatabaseHandler {
 					mapFileConfig.getInt(playerName + ".time"),
 					mapFileConfig.getInt(playerName + ".totalTime"),
 					new Date().getTime());
-			if (!checkUser(user)) {
+			if (!checkUser(user.getName())) {
 				total++;
 				insertUser(user);
 			}

@@ -183,7 +183,6 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	public void insertUser(final LPUser user) {
 		user.setTimeComparison(new Date().getTime());
-		user.setOnline(true);
 		users.put(user.getName(), user);
 
 	}
@@ -191,7 +190,7 @@ public class LoyaltyPoints extends JavaPlugin {
 	public LPUser getUser(String username) {
 
 		LPUser user = null;
-		if (areUser(username)) {
+		if (areUserOnline(username)) {
 			user = users.get(username);
 		} else {
 			user = config.getDatabase().GetUser(username);
@@ -200,8 +199,23 @@ public class LoyaltyPoints extends JavaPlugin {
 
 	}
 
-	public boolean areUser(String username) {
+	public boolean areUserOnline(String username) {
+		
 		return users.containsKey(username);
+	}
+	
+	public boolean areUser(String username){
+		boolean rtnbool;
+		if(areUserOnline(username)){
+			rtnbool = true;
+		}else{
+			if(config.getDatabase().checkUser(username)){
+				rtnbool = true;	
+			}else{
+				rtnbool = false;
+			}
+		}
+		return  rtnbool;
 	}
 
 	public void giveOnlineUsersPoints() {

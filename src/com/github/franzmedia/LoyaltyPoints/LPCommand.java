@@ -6,7 +6,6 @@
 
 package com.github.franzmedia.LoyaltyPoints;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -111,18 +110,8 @@ public class LPCommand implements CommandExecutor {
 					// compare other ppl
 
 					if (sender.hasPermission("loyaltypoints.check.other")) {
-						final Player trick = Bukkit.getPlayer(args[0]);
-						if (trick != null) {
-							final String other1 = trick.getName();
-							sender.sendMessage(lptext
-									.getCheckotherMessage()
-									.replaceAll("%PLAYERNAME%", other1)
-									.replaceAll(
-											"%POINTS%",
-											String.valueOf(plugin.getUser(
-													other1).getPoint())));
-
-						} else {
+						
+					
 							if (plugin.areUser(args[0])) {
 								sender.sendMessage(lptext
 										.getCheckotherMessage()
@@ -136,7 +125,7 @@ public class LPCommand implements CommandExecutor {
 								sender.sendMessage(lptext.getNoUser());
 
 							}
-						}
+						
 					} else {
 						sender.sendMessage(lptext.getErrorPermission());
 					}
@@ -162,9 +151,6 @@ public class LPCommand implements CommandExecutor {
 
 		final LPUser user = plugin.getUser(sender.getName());
 		final int time = user.getTimeLeft();
-		if (user.getName().toLowerCase().contains("kasperfranz")) {
-			sender.sendMessage(user.getTimeLeftDebug());
-		}
 		if (time >= 0) {
 			String daten = plugin.getNiceNumber(time);
 
@@ -217,7 +203,7 @@ public class LPCommand implements CommandExecutor {
 
 		if (args.length != 3) {
 			sender.sendMessage(lptext.getHelpSet());
-		} else if (!plugin.areUser(args[1])) {
+		} else if (!plugin.areUserOnline(args[1])) {
 			sender.sendMessage(lptext.getErrorUnknownUser());
 
 		} else {
@@ -254,8 +240,8 @@ public class LPCommand implements CommandExecutor {
 
 		int from = maxTop - 10;
 		
-		LPUser[] users = plugin.getlpConfig().getDatabase().getTop(maxTop - 10, 11);
-		plugin.debug("From: " + from + " MaxzTop" + maxTop + users.length);
+		LPUser[] users = plugin.getlpConfig().getDatabase().getTop(maxTop - 10, 10);
+		plugin.debug("From: " + from + " MaxTop" + maxTop + users.length);
 		if (users.length == 0) {
 			sender.sendMessage(lptext.getErrorNoUsers());
 		} else {
