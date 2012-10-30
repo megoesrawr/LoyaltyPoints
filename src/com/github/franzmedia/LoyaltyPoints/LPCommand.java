@@ -188,11 +188,10 @@ public class LPCommand implements CommandExecutor {
 				plugin.getDescription().getVersion()));
 
 		if (sender.isOp()) {
-			plugin.getlpConfig().getNewestVersion();
 
 			if (!plugin.getlpConfig().upToDate()) {
 				sender.sendMessage(lptext.getNewVersionAvalible().replaceAll(
-						"%NEWVERSION%", plugin.getlpConfig().getNewestVersion()+""));
+						"%NEWVERSION%", plugin.getlpConfig().getNewVersion()+""));
 
 			}
 
