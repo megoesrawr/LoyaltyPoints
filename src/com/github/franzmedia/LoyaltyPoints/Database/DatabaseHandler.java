@@ -26,6 +26,7 @@ public class DatabaseHandler {
 
 		this.type = type;
 		this.plugin = plugin;
+		this.log = log;
 		this.hostname = hostname;
 		this.portnmbr = portnmbr;
 		this.database = database;
@@ -130,7 +131,7 @@ public class DatabaseHandler {
 			c = rs.getInt("c");
 			rs.close();
 		} catch (SQLException e) {
-			// SQL ERROR
+			log.warning("SQL ERROR ON CHECK USER:" + e.toString());
 		}
 		if (c > 0) {
 			returnboolean = true;
@@ -148,19 +149,15 @@ public class DatabaseHandler {
 						+ users[i].getTime() + "\", " + "totaltime = \""
 						+ users[i].getTotalTime() + "\" WHERE username = \""
 						+ users[i].getName() + "\"";
+				plugin.debug(sql);
 				ResultSet rs = mysql.query(sql);
 				try {
 					if (!rs.rowUpdated()) {
 						insertUser(users[i]);
 					}
-				} catch (SQLException e) {
-					log.warning("SQL ERROR");
-				}
-				try {
 					rs.close();
 				} catch (SQLException e) {
-					// log.warning("SQL ERROR");
-
+					log.warning("SQL ERROR ON SAVE USERS:" + e.toString());
 				}
 			}
 		} else {
@@ -227,9 +224,8 @@ public class DatabaseHandler {
 
 			last = rs.getInt("c");
 			rs.close();
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (SQLException e) {
+			log.warning("SQL ERROR ON GET USER:" + e.toString());
 		}
 		if (last != 0) {
 			query = "SELECT * from users where username = '" + username + "'";
@@ -250,7 +246,7 @@ public class DatabaseHandler {
 				rs.close();
 
 			} catch (SQLException e) {
-				log.warning("SQL ERROR ON GET USERS");
+				log.warning("SQL ERROR ON GET USER:" + e.toString());
 			}
 		} else {
 			// NEW USER!!!!;
