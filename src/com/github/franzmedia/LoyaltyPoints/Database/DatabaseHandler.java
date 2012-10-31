@@ -142,7 +142,7 @@ public class DatabaseHandler {
 
 	public void saveUsers(LPUser[] users) {
 
-		if (type == '1') {
+		if (type == 1) {
 			for (int i = 0; i < users.length; i++) {
 				String sql = "UPDATE users SET point = \""
 						+ users[i].getPoint() + "\", " + "time = \""
@@ -230,7 +230,7 @@ public class DatabaseHandler {
 		if (last != 0) {
 			query = "SELECT * from users where username = '" + username + "'";
 
-			if (type == '1') {
+			if (type == 1) {
 				rs = mysql.query(query);
 			} else {
 				rs = sqlite.query(query);
