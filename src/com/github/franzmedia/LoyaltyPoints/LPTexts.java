@@ -31,6 +31,7 @@ public class LPTexts {
 	 private String helpVersion = "&6/lp version &b- Shows the version of Loyalty Points.";
 	 private String helpReload = "&6/lp reload &b- Reloads the Loyalty Points.";
 	 private String helpSet = "&6/lp set [username] [amount] &b- Sets the username to amount LP.";
+         private String helpRemove = "&6/lp remove [usrname] [amount] &b- removes the amount of points from the user.";
 	 private String helpPlayTime = "&6/lp playtime &b- Shows your playtime.";
 	 private String helpAdd = "&6/lp add [username] (amont) &b- Adds amount to username.";
 	 private String helpTopBot = "&3--------- &6 LoyaltyPoints Help &3 ---------";
@@ -49,6 +50,9 @@ public class LPTexts {
 	 private String transformAmount = "The transform to SQL is done, we moved %TOTAL% users.";
 	 private String errorLoadingNewVersion = "There was a error while loading the newest version.";
 	 private String errorNoUsers = "There was no users in the record.";
+         private String errorNoPoints = "%PLAYER% hadn't %POINTS%.";
+         private String removeSuccess = "There have now been removed %POINTS% from %PLAYER%.";
+         
 	private LoyaltyPoints plugin;
 		
 	 public LPTexts(LoyaltyPoints plugin){
@@ -173,6 +177,15 @@ public class LPTexts {
 	public String getHelpSet() {
 		return finalize(helpSet,2);
 	}
+        public String getHelpRemove() {
+		return finalize(helpRemove,2);
+	}
+        public String getRemoveSuccess(){
+                return finalize(removeSuccess, 2);
+        }
+        public String getErrorNoPoints(){
+                return finalize(errorNoPoints, 2);
+        }
 	public String getHelpPlayTime() {
 		
 		return finalize(helpPlayTime,2);
