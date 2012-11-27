@@ -1,8 +1,4 @@
-/* 
- * AUTHOR: Kasper Franz
- * Loyalty Points 1.0.9
- * Last Changed: Added general permission 
- */
+
 package com.github.franzmedia.LoyaltyPoints;
 
 import org.bukkit.ChatColor;
@@ -37,7 +33,7 @@ public class LPCommand implements CommandExecutor {
                     }
 
                 } else {
-                    sender.sendMessage(lptext.getText("consoleCheck", 1));
+                    sender.sendMessage(lptext.getConsoleCheck());
                 }
             } else {
                 if (args[0].equalsIgnoreCase("toSQL")) {
@@ -100,7 +96,7 @@ public class LPCommand implements CommandExecutor {
                          */
                         next(sender);
                     } else { // is cmd
-                        sender.sendMessage(lptext.getText("consoleCheck", 1));
+                        sender.sendMessage(lptext.getConsoleCheck());
 
                     }
                 } else if ((args[0].equalsIgnoreCase("playtime") || args[0].equalsIgnoreCase("time"))
@@ -112,7 +108,7 @@ public class LPCommand implements CommandExecutor {
 
                         playtime(sender, args);
                     } else { // is cmd
-                        sender.sendMessage(lptext.getText("consoleCheck", 1));
+                        sender.sendMessage(lptext.getConsoleCheck());
 
                     }
 
