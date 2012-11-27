@@ -1,11 +1,10 @@
 package com.github.franzmedia.LoyaltyPoints.Shop;
 
+import com.github.franzmedia.LoyaltyPoints.*;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.SignChangeEvent;
-
-import com.github.franzmedia.LoyaltyPoints.*;
 
 public class LPShop {
 	private LoyaltyPoints plugin;
