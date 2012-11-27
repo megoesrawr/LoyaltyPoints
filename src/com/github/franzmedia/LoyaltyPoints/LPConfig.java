@@ -205,7 +205,7 @@ public class LPConfig {
  */
     public boolean upToDate() {
         loadNewestVersion();
-        boolean returnstr = false;
+        boolean returnstr;
         plugin.debug("uptoDATE" + newestVersion + ">" + version);
         if (newestVersion > version) {
             returnstr = false;
@@ -231,13 +231,13 @@ public class LPConfig {
                 try {
                     output = new FileOutputStream(actual);
                     byte[] buf = new byte[4096]; // [8192]?
-                    int length = 0;
+                    int length;
                     while ((length = input.read(buf)) > 0) {
                         output.write(buf, 0, length);
                     }
-                    this.logger.info("[LoyaltyPoints] Loading the Default config: " + name);
+                    logger.info("[LoyaltyPoints] Loading the Default config: " + name);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                   logger.warning("Error while loading the file!!!!!!"+e.getMessage());
                 } finally {
                     try {
                         if (input != null) {
@@ -262,8 +262,7 @@ public class LPConfig {
  */
     private int loadNewestVersion() {
         try {
-            final URL url = new URL(
-                    "https://raw.github.com/franzmedia/LoyaltyPoints/master/version.txt");
+            final URL url = new URL("https://raw.github.com/franzmedia/LoyaltyPoints/master/version.txt");
             final URLConnection connection = url.openConnection();
             final BufferedReader in = new BufferedReader(new InputStreamReader(
                     connection.getInputStream()));

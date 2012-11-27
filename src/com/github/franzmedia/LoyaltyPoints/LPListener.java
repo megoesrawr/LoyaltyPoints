@@ -12,10 +12,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
- *  
+ *
  * @AUTHOR: Kasper Franz
- * @version: 1.1.4
- * Last Changed: JavaDoc for this.
+ * @version: 1.1.4 Last Changed: JavaDoc for this.
  *
  */
 public class LPListener implements Listener {
@@ -23,19 +22,19 @@ public class LPListener implements Listener {
     private final LoyaltyPoints plugin;
     private boolean shop_active;
 
-    
     /**
      * The main of the listener, which listen on events from the player.
+     *
      * @param plugin Reference to the plugin (to get access to users and so on.)
      */
     public LPListener(final LoyaltyPoints plugin) {
         this.plugin = plugin;
-        
+
         shop_active = plugin.getlpConfig().shopActive();
     }
 
     /**
-     * 
+     *
      * @param event the join event when a play joins the server.
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -46,9 +45,9 @@ public class LPListener implements Listener {
         }
     }
 
-
     /**
      * The handler for when a player logout of the server.
+     *
      * @param event the PlayerQuitEvent when the player leaves.
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -61,9 +60,9 @@ public class LPListener implements Listener {
         }
     }
 
-
     /**
      * HANDLER FOR the playerInteractEvent (player right click)
+     *
      * @param event PlayerInteractEvent
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -87,13 +86,15 @@ public class LPListener implements Listener {
 
     }
 
-   /**
-    * Handler for when a sign is placed.
-    * @param event  the signChangeEvent
-    */
-    
+    /**
+     * Handler for when a sign is placed.
+     *
+     * @param event the signChangeEvent
+     */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEditShop(final SignChangeEvent event) {
-        plugin.getShop().createSign(event);
+        if (shop_active) {
+            plugin.getShop().createSign(event);
+        }
     }
 }

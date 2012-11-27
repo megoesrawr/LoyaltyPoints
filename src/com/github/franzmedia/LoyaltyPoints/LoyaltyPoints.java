@@ -12,272 +12,263 @@
  * amount of points (reaches a point milestone) Receive item rewards on
  * specified point milestones
  */
-
 package com.github.franzmedia.LoyaltyPoints;
 
+import com.github.franzmedia.LoyaltyPoints.Metrics.Metric;
+import com.github.franzmedia.LoyaltyPoints.Shop.LPShop;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
-
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.github.franzmedia.LoyaltyPoints.Metrics.Metric;
-import com.github.franzmedia.LoyaltyPoints.Shop.LPShop;
-
 public class LoyaltyPoints extends JavaPlugin {
-	private Logger logger;
 
-	private int debug = 0;
-	private final Map<String, LPUser> users = new HashMap<String, LPUser>();
-	private LPConfig config;
-	private LPTexts lptext;
-	private LPShop shop;
+    private static final Logger logger = Logger.getLogger("Minecraft");
+    private int debug = 0;
+    private final Map<String, LPUser> users = new HashMap<String, LPUser>();
+    private LPConfig config;
+    private LPTexts lptext;
+    private LPShop shop;
 
-	
-	@Override
-	public void onEnable() {
-		logger = Logger.getLogger("Minecraft");
+    @Override
+    public void onEnable() {
 
-		// Getting the texts
-		lptext = new LPTexts(this);
 
-		// loading the variables from the config! + making the config object
-		config = new LPConfig(this.getConfig(), this, logger);
-		
-		// new Shop if active
-		if(config.shopActive()){
-			shop = new LPShop(this);
-		}
-		
-		// loading the texts from the config!
-		lptext.loadText();
+        // Getting the texts
+        lptext = new LPTexts(this);
 
-		// loading the points (If there are any online)!!!
-		loadOnlineUsers();
+        // loading the variables from the config! + making the config object
+        config = new LPConfig(this.getConfig(), this, logger);
 
-		// Setting up the listener (player login/logout & move)
-		this.getServer().getPluginManager()
-				.registerEvents(new LPListener(this), this);
+        // new Shop if active
+        if (config.shopActive()) {
+            shop = new LPShop(this);
+        }
 
-		// Commands setup!
-		getCommand("lp").setExecutor(new LPCommand(this, lptext));
+        // loading the texts from the config!
+        lptext.loadText();
 
-		// Telling the server we are up and running
-		info(getDescription(), "enabled");
+        // loading the points (If there are any online)!!!
+        loadOnlineUsers();
 
-		// Making scheduler (giving points after the update timer)
-		getServer().getScheduler().scheduleAsyncRepeatingTask(this,
-				new LPScheduler(this), config.getUpdateTimer(),
-				config.getUpdateTimer());
+        // Setting up the listener (player login/logout & move)
+        this.getServer().getPluginManager()
+                .registerEvents(new LPListener(this), this);
 
-		// Enable metrics (MCstats.org)
-		Metrics();
+        // Commands setup!
+        getCommand("lp").setExecutor(new LPCommand(this, lptext));
 
-	}
+        // Telling the server we are up and running
+        info(getDescription(), "enabled");
 
-	@Override
-	public void onDisable() {
+        // Making scheduler (giving points after the update timer)
+        getServer().getScheduler().scheduleAsyncRepeatingTask(this,
+                new LPScheduler(this), config.getUpdateTimer(),
+                config.getUpdateTimer());
 
-		giveOnlineUsersPoints();
-		saveOnlineUsers();
-		users.clear();
-		info(this.getDescription(), "disabled");
-	}
+        // Enable metrics (MCstats.org)
+        Metrics();
 
-	public void loadOnlineUsers() {
-		for (final Player player : getServer().getOnlinePlayers()) {
-			if (player.hasPermission("loyaltypoints.general")) {
-				users.put(player.getName(),
-						config.getDatabase().GetUser(player.getName()));
-			}
-		}
-	}
+    }
 
-	public void stop() {
-		setEnabled(false);
-	}
+    @Override
+    public void onDisable() {
 
-	public String getNiceNumber(int millsec) {
-		String str = "";
-		int g = 0;
+        giveOnlineUsersPoints();
+        saveOnlineUsers();
+        users.clear();
+        info(this.getDescription(), "disabled");
+    }
 
-		if (millsec >= 31556926) { // year
-			g = 1;
-			str = str + (millsec / 31556926) + "y";
-			millsec = millsec - ((millsec / 31556926) * 31556926);
+    public void loadOnlineUsers() {
+        for (final Player player : getServer().getOnlinePlayers()) {
+            if (player.hasPermission("loyaltypoints.general")) {
+                users.put(player.getName(),
+                        config.getDatabase().GetUser(player.getName()));
+            }
+        }
+    }
 
-		}
+    public void stop() {
+        setEnabled(false);
+    }
 
-		if (millsec >= 2629744) { // month
-			if (g == 1) {
-				str = str + ", ";
-				g = 0;
-			}
-			str = str + (millsec / 2629744) + "m";
-			millsec = millsec - ((millsec / 2629744) * 2629744);
-			g = 1;
-		}
+    public String getNiceNumber(int millsec) {
+        String str = "";
+        int g = 0;
 
-		if (millsec >= 86400) { // day
-			if (g == 1) {
-				str = str + ", ";
-				g = 0;
-			}
-			str = str + (millsec / 86400) + "d";
-			millsec = millsec - ((millsec / 86400) * 86400);
-			g = 1;
-		}
-		if (millsec >= 3600) { // time
-			if (g == 1) {
-				str = str + ", ";
-				g = 0;
-			}
-			str = str + (millsec / 3600) + "h";
-			millsec = millsec - ((millsec / 3600) * 3600);
-			g = 1;
-		}
-		if (millsec >= 60) { // min
-			if (g == 1) {
-				str = str + ", ";
-				g = 0;
-			}
-			str = str + (millsec / 60) + "m";
-			millsec = millsec - ((millsec / 60) * 60);
-			g = 1;
-		}
+        if (millsec >= 31556926) { // year
+            g = 1;
+            str = str + (millsec / 31556926) + "y";
+            millsec = millsec - ((millsec / 31556926) * 31556926);
 
-		if (millsec >= 1) {
-			if (g == 1) {
-				str = str + ", ";
+        }
 
-			}
-			str = str + millsec + "s";
-			millsec = millsec - millsec;
+        if (millsec >= 2629744) { // month
+            if (g == 1) {
+                str = str + ", ";
 
-		}
+            }
+            str = str + (millsec / 2629744) + "m";
+            millsec = millsec - ((millsec / 2629744) * 2629744);
+            g = 1;
+        }
 
-		return str;
-	}
+        if (millsec >= 86400) { // day
+            if (g == 1) {
+                str = str + ", ";
 
-	public void info(final PluginDescriptionFile pdf, final String status) {
-		this.logger.info("[LoyaltyPoints] Version " + pdf.getVersion()
-				+ " by Franzmedia is now " + status + "!");
-	}
+            }
+            str = str + (millsec / 86400) + "d";
+            millsec = millsec - ((millsec / 86400) * 86400);
+            g = 1;
+        }
+        if (millsec >= 3600) { // time
+            if (g == 1) {
+                str = str + ", ";
+            }
+            str = str + (millsec / 3600) + "h";
+            millsec = millsec - ((millsec / 3600) * 3600);
+            g = 1;
+        }
+        if (millsec >= 60) { // min
+            if (g == 1) {
+                str = str + ", ";
 
-	public void removeUser(LPUser user) {
+            }
+            str = str + (millsec / 60) + "m";
+            millsec = millsec - ((millsec / 60) * 60);
+            g = 1;
+        }
 
-		config.getDatabase().saveUser(user);
-		users.remove(user.getName());
-	}
+        if (millsec >= 1) {
+            if (g == 1) {
+                str = str + ", ";
 
-	public void debug(String txt) {
-		if (debug == 1) {
-			System.out.println(txt);
-		}
-	}
+            }
+            str = str + millsec + "s";
 
-	public void insertUser(final LPUser user) {
-		user.setTimeComparison(new Date().getTime());
-		users.put(user.getName(), user);
+        }
 
-	}
+        return str;
+    }
 
-	public LPUser getUser(String username) {
+    public void info(final PluginDescriptionFile pdf, final String status) {
+        logger.info("[LoyaltyPoints] Version " + pdf.getVersion()
+                + " by Franzmedia is now " + status + "!");
+    }
 
-		LPUser user = null;
-		if (areUserOnline(username)) {
-			user = users.get(username);
-		} else {
-			user = config.getDatabase().GetUser(username);
-		}
-		return user;
+    public void removeUser(LPUser user) {
 
-	}
+        config.getDatabase().saveUser(user);
+        users.remove(user.getName());
+    }
 
-	public boolean areUserOnline(String username) {
-		
-		return users.containsKey(username);
-	}
-	
-	public boolean areUser(String username){
-		boolean rtnbool;
-		if(areUserOnline(username)){
-			rtnbool = true;
-		}else{
-			if(config.getDatabase().checkUser(username)){
-				rtnbool = true;	
-			}else{
-				rtnbool = false;
-			}
-		}
-		return  rtnbool;
-	}
+    public void debug(String txt) {
+        if (debug == 1) {
+            System.out.println(txt);
+        }
+    }
 
-	public void giveOnlineUsersPoints() {
+    public void insertUser(final LPUser user) {
+        user.setTimeComparison(new Date().getTime());
+        users.put(user.getName(), user);
 
-		Iterator<String> u = users.keySet().iterator();
-		while (u.hasNext()) {
-			users.get(u.next()).givePoint();
+    }
 
-		}
-	}
+    public LPUser getUser(String username) {
 
-	public void saveOnlineUsers() {
-		LPUser[] savingUsers = new LPUser[users.size()];
-		Iterator<String> u = users.keySet().iterator();
-		for (int i = 0; u.hasNext(); i++) {
-			savingUsers[i] = users.get(u.next());
-		}
-		config.getDatabase().saveUsers(savingUsers);
-	}
+        LPUser user;
+        if (areUserOnline(username)) {
+            user = users.get(username);
+        } else {
+            user = config.getDatabase().GetUser(username);
+        }
+        return user;
 
-	public Map<String, LPUser> getUsers() {
-		return users;
-	}
+    }
 
-	public void loadUser(String name) {
-		users.put(name, config.getDatabase().GetUser(name));
+    public boolean areUserOnline(String username) {
 
-	}
+        return users.containsKey(username);
+    }
 
-	public LPTexts getLptext() {
-		return lptext;
-	}
+    public boolean areUser(String username) {
+        boolean rtnbool;
+        if (areUserOnline(username)) {
+            rtnbool = true;
+        } else {
+            if (config.getDatabase().checkUser(username)) {
+                rtnbool = true;
+            } else {
+                rtnbool = false;
+            }
+        }
+        return rtnbool;
+    }
 
-	private void Metrics() {
+    public void giveOnlineUsersPoints() {
 
-		try {
-		
-			Metric metrics = new Metric(this);
-			
-			metrics.addCustomData(new Metric.Plotter("PointType") {
+        Iterator<String> u = users.keySet().iterator();
+        while (u.hasNext()) {
+            users.get(u.next()).givePoint();
 
-			        @Override
-			        public int getValue() {
-			            return config.getType();
-			        }
+        }
+    }
 
-			    });
+    public void saveOnlineUsers() {
+        LPUser[] savingUsers = new LPUser[users.size()];
+        Iterator<String> u = users.keySet().iterator();
+        for (int i = 0; u.hasNext(); i++) {
+            savingUsers[i] = users.get(u.next());
+        }
+        config.getDatabase().saveUsers(savingUsers);
+    }
 
-			metrics.start();
-			
-		} catch (IOException e) {
-			// Failed to submit the stats :-(
-		}
+    public Map<String, LPUser> getUsers() {
+        return users;
+    }
 
-	}
+    public void loadUser(String name) {
+        users.put(name, config.getDatabase().GetUser(name));
 
-	
-	public LPConfig getlpConfig() {
-		return config;
-	}
+    }
 
-	public LPShop getShop() {
-		return shop;
-	}
+    public LPTexts getLptext() {
+        return lptext;
+    }
+
+    private void Metrics() {
+
+        try {
+
+            Metric metrics = new Metric(this);
+
+            metrics.addCustomData(new Metric.Plotter("PointType") {
+                @Override
+                public int getValue() {
+                    return config.getType();
+                }
+            });
+
+            metrics.start();
+
+        } catch (IOException e) {
+            // Failed to submit the stats :-(
+        }
+
+    }
+
+    public LPConfig getlpConfig() {
+        return config;
+    }
+
+    public LPShop getShop() {
+        return shop;
+    }
 }
