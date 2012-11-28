@@ -44,6 +44,9 @@ permissions:
     loyaltypoints.shop.create:
         description: Allows the player to create a shop, place a sign with a shop value
         default: op
+    loyaltypoints.remove:
+        description: Allows the player to remove points from a user.
+        default: op
     loyaltypoints.user:
         description: Permissions package of LoyaltyPoints that is essential for a normal user.
         children:
@@ -61,4 +64,5 @@ permissions:
             loyaltypoints.version: true
             loyaltypoints.reload: true
             loyaltypoints.set: true
+            loyaltypoints.remove: true
         default: false
