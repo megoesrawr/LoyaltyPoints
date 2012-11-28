@@ -47,7 +47,7 @@ public class LPCommand implements CommandExecutor {
                         if (sender.hasPermission("loyaltypoints.add")) {
                             add(sender, args);
                         } else {
-                            sender.sendMessage(lptext.getAddToUser());
+                            sender.sendMessage(lptext.getErrorPermission());
                         }
                         
                     } else {
