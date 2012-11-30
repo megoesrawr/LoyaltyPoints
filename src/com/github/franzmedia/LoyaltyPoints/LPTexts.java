@@ -7,7 +7,7 @@ public class LPTexts {
 	 private String consoleCheck = "Sorry, I don't track consoles.";
 	 private String selfcheckMessage = "&3You have &b%POINTS% &3Loyalty Points.";
 	 private String checkotherMessage = " &3%PLAYERNAME% has &b%POINTS% &3Loyalty Points.";
-	 private String toMySQL =  " We are now moving your file browsers to SQLite/MySQL (this may take a while, please wait!)";
+	 private String toMySQL =  "We are now moving your file browsers to SQLite/MySQL (this may take a while, please wait!)";
 	 private String MySQLFinish = "The transform to SQL is done, we moved %TOTAL% users";
 	 private String noAccess = " You don't have access to this command.";
 	 private String addToUser = "&3There have been added &b %POINT% &3points to &b %USER%";
