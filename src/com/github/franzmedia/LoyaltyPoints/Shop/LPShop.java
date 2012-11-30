@@ -15,7 +15,7 @@ public class LPShop {
 
 	public void action(Player player, Sign sign) {
 
-		// lets first make the vars needed for this price, type, and execute the
+		// Lets first make the vars needed for this price, type, and execute the
 		// selected
 		int price = getprice(sign.getLine(1), 7, player);
 		if (price != -1) {
@@ -34,16 +34,16 @@ public class LPShop {
 						}
 
 					}else{
-						player.sendMessage("there was a error with the execute");
+						player.sendMessage("There was a error with the execute.");
 					}
 				}else{
-					player.sendMessage("There was a error on the type");	
+					player.sendMessage("There was a error on the type.");	
 				}
 			}else{
-				player.sendMessage("you dont have enough Loyalty Points");
+				player.sendMessage("You don't have enough Loyalty Points.");
 			}
 		}else{
-			player.sendMessage("There was a Error with the price, please contakt a op");
+			player.sendMessage("There was a error with the price, please contact a admin.");
 		}
 
 	}
@@ -70,7 +70,7 @@ public class LPShop {
 		try {
 			price = Integer.parseInt(s);
 		} catch (NumberFormatException ex) {
-			player.sendMessage("There are a Error with this sign, please contact a op");
+			player.sendMessage("There are a error with this sign, please contact a admin.");
 		}
 		return price;
 	}
@@ -114,7 +114,7 @@ public class LPShop {
 			result = 1;
 		} catch (Exception ex) {
 			player.sendMessage(plugin.getLptext().getPluginTag()
-					+ " There have happend a error, please contact a op :(");
+					+ " There have happend a error, please contact a admin :(");
 		}
 
 		return result;
