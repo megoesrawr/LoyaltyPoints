@@ -38,7 +38,7 @@ public class LPTexts {
 	 private String next = "&3There are around &b %TIME% &3 until next payout.";
 	 private String nextGone = "&3You get points in the next pay out. :)";
 	 private String onlinetime = "&3You have been online for &b %ONLINETIME%.";
-	 private String consolePointTypeError = "It seems like there are a error on your PointType,  1-3 is a allowed value!";
+	 private String consolePointTypeError = "It seems like there are a error on your PointType, 1-3 is a allowed value!";
 	 private String consoleLoadingUser = "";
 	 private String consoleLoadingUserDone = "There have been loaded a total of %TOTAL% users.";
 	 private String consoleSQLError = "There is a error with the SQL.";
