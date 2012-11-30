@@ -15,8 +15,8 @@ public class LPTexts {
 	 private String reloadMsg = "&3Reloaded points data & configuration.";
 	 private String nowVersion = "&3Version &b%VERSION%";
 	 private String newVersionAvalible = "&3There are a newer version of LoyaltyPoints %NEWVERSION%";
-	 private String setHelpError = " &3/lp set &b[username] [amount]";
-	 private String newSetAmount = " &3%PLAYER%'s&b Loyalty Points was changed to &3%AMOUNT%";
+	 private String setHelpError = "&3/lp set &b[username] [amount]";
+	 private String newSetAmount = "&3%PLAYER%'s&b Loyalty Points was changed to &3%AMOUNT%";
 	 private String errorNumber = "&cNumber expected after. &b";
 	 private String errorPermission = "&cYou don't have permission for this command.";
 	 private String errorUnknownUser = "&cThe user couldn't be found.";
