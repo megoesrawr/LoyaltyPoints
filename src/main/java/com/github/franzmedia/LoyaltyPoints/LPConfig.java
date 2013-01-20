@@ -262,7 +262,7 @@ public class LPConfig {
  */
     private int loadNewestVersion() {
         try {
-            final URL url = new URL("https://raw.github.com/franzmedia/LoyaltyPoints/master/version.txt");
+            final URL url = new URL("https://raw.github.com/KasperFranz/LoyaltyPoints/master/version.txt");
             final URLConnection connection = url.openConnection();
             final BufferedReader in = new BufferedReader(new InputStreamReader(
                     connection.getInputStream()));
